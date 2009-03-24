@@ -1,0 +1,8 @@
+This is my awesome rack router.
+Mad props to Josh Peek, a lot (most?) of the concepts come from him.
+
+Some points for discussion:
+---------------------------
+
+* Caching the request object
+* Passing routing parameters to the app

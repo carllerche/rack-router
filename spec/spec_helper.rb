@@ -1,5 +1,6 @@
 $LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
 
+require "yaml"
 require "rubygems"
 require "spec"
 require "rack/router"
@@ -26,16 +27,24 @@ module Spec
     
     class HaveRoute
       def initialize(app, expected)
-        @expected = expected
+        @app, @expected = app, expected
       end
       
       def matches?(target)
         @target = target
-        false
+        
+        if @target[0] == 200
+          @routing_args = YAML.load(@target[2])['rack.routing_args']
+          @expected == @routing_args
+        end
       end
       
       def failure_message
-        @target.inspect
+        if @routing_args
+          "Route matched, but returned: #{@routing_args.inspect}"
+        else
+          "Route did not match anything"
+        end
       end
     end
     
@@ -46,7 +55,7 @@ module Spec
 end
 
 EchoApp = lambda do |env|
-  [ 200, { "Content-Type" => 'text/yaml' }, "Hello World!" ]
+  [ 200, { "Content-Type" => 'text/yaml' }, YAML.dump(env) ]
 end
 
 Object.instance_eval do

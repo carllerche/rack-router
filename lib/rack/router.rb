@@ -14,8 +14,16 @@ module Rack
     
     def call(env)
       for route in @routes
-        if route.matches?(env)
+        if args = route.match(env)
+          # The routing args are destructively merged into the rack
+          # environment so that they can be used by any application
+          # called by the router or any app downstream.
+          env.merge! "rack.routing_args" => args
+          
+          # Call the application that the route points to
           result = route.app.call(env)
+          
+          # Return the result unless the app was not able to handle
           return result unless result[0] == 404
         end
       end

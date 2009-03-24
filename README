@@ -6,3 +6,5 @@ Some points for discussion:
 
 * Caching the request object
 * Passing routing parameters to the app
+* How should an application tell the router that it cannot handle
+  the request?

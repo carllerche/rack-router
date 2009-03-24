@@ -7,7 +7,7 @@ describe "When recognizing requests," do
       r.map "/info", :to => FooApp, :with => { :action => "info" }
     end
     
-    route_for("/info").should have_route(FooApp, :action => "foo")
+    route_for("/info").should have_route(FooApp, :action => "info")
   end
   
 end

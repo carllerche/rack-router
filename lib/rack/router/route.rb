@@ -8,9 +8,9 @@ class Rack::Router
       @app, @conditions, @params = app, conditions, params
     end
     
-    def matches?(env)
+    def match(env)
       request = Rack::Request.new(env)
-      conditions.all? { |k, v| request.send(k) == v }
+      conditions.all? { |k, v| request.send(k) == v } && @params
     end
     
   end

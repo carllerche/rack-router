@@ -17,7 +17,7 @@ class Rack::Router::Builder
       options = args.last.is_a?(Hash) ? args.pop : {}
       method  = args.last || "GET"
       
-      conditions = {}
+      conditions                  = options[:conditions] || {}
       conditions[:path_info]      = path if path
       conditions[:request_method] = upcase_method(args.last) if args.last
       

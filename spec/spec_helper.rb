@@ -12,10 +12,11 @@ module Spec
     end
     
     def env_for(path, options = {})
-      {
-        "REQUEST_METHOD" => (options.delete(:method) || "GET").to_s.upcase,
-        "PATH_INFO"      => path
-      }
+      env = {}
+      env["REQUEST_METHOD"]  = (options.delete(:method) || "GET").to_s.upcase
+      env["PATH_INFO"]       = path
+      env["rack.url_scheme"] = options[:scheme] if options[:scheme]
+      env
     end
     
     def route_for(path, options = {})

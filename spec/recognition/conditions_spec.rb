@@ -94,6 +94,42 @@ describe "When recognizing requests," do
         route_for("/hello", :method => method).should have_route(HelloApp)
       end
     end
+    
+    describe "a route with an arbitrary Request method condition and a path condition" do
+
+      before(:each) do
+        prepare do |r|
+          r.map "/foo", :to => ProtocolApp, :conditions => { :scheme => "http" }, :with => { :action => "text" }
+        end
+      end
+
+      it "should match the route if the path and the protocol match" do
+        route_for("/foo", :scheme => "http").should have_route(ProtocolApp, :action => "text")
+      end
+
+      it "should not match if the route does not match" do
+        route_for("/bar", :scheme => "http").should be_missing
+      end
+
+      it "should not match if the protocol does not match" do
+        route_for("/foo", :scheme => "https").should be_missing
+      end
+
+      it "should combine Array elements using OR" do
+        prepare do |r|
+          r.map "/hello", [:get, :post], :to => HelloApp
+        end
+
+        route_for("/hello", :method => "get").should      have_route(HelloApp)
+        route_for("/hello", :method => "post").should     have_route(HelloApp)
+        route_for("/hello",   :method => "put").should    be_missing
+        route_for("/hello",   :method => "delete").should be_missing
+        route_for("/goodbye", :method => "get").should    be_missing
+        route_for("/goodbye", :method => "post").should   be_missing
+        route_for("/goodbye", :method => "put").should    be_missing
+        route_for("/goodbye", :method => "delete").should be_missing
+      end
+    end
   end
   
 end

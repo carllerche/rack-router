@@ -8,10 +8,22 @@ class Rack::Router
       @app, @conditions, @params = app, conditions, params
     end
     
+    def compile
+      @conditions.each do |k, v|
+        @conditions[k] = Condition.new(v)
+      end
+      
+      freeze
+    end
+    
     def match(env)
       request = Rack::Request.new(env)
-      conditions.all? { |k, v| request.send(k) == v } && @params
+      conditions.all? { |k, v| request.send(k) =~ v } && @params
     end
+    
+  private
+  
+    
     
   end
 end

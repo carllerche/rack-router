@@ -18,7 +18,7 @@ class Rack::Router
     
     def match(env)
       request = Rack::Request.new(env)
-      conditions.all? { |k, v| request.send(k) =~ v } && @params
+      conditions.all? { |k, v| v =~ request.send(k) } && @params
     end
     
   private

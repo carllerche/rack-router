@@ -9,16 +9,22 @@ class Rack::Router
     end
     
     def compile
-      @conditions.each do |k, v|
-        @conditions[k] = Condition.new(v)
+      @conditions.each do |k, pattern|
+        @conditions[k] = Condition.new(pattern)
       end
       
       freeze
     end
     
     def match(env)
-      request = Rack::Request.new(env)
-      conditions.all? { |k, v| v =~ request.send(k) } && @params
+      request  = Rack::Request.new(env)
+      captures = {}
+      
+      return unless conditions.all? do |method_name, condition|
+        capts = condition.match(request.send(method_name)) and captures.merge!(capts)
+      end
+      
+      captures.merge! @params
     end
     
   private

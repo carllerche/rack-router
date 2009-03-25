@@ -5,23 +5,24 @@ class Rack::Router
   SEGMENT_CHARACTERS     = "[^\/.,;?]".freeze
   
   class Condition
-    
-    def initialize(pattern)
-      @pattern = pattern
+    def initialize(pattern, conditions = {})
+      if pattern.is_a?(String)
+        @conditions = {}
+        
+        conditions.each do |k, v|
+          @conditions[k] = Regexp.escape(v) unless v.is_a?(Regexp)
+        end
+        
+        @segments   = parse_segments_with_optionals(pattern.dup)
+        @pattern    = Regexp.new("^#{compile(@segments)}$")
+        @captures   = @segments.flatten.select { |s| s.is_a?(Symbol) }
+      else
+        @pattern    = pattern
+      end
     end
     
-    def =~(other)
-      @pattern == other
-    end
-    
-  end
-  
-  class ConditionWithCaptures < Condition
-    def initialize(pattern)
-      raise ArgumentError, "pattern must be a string" unless pattern.is_a?(String)
-      
-      @segments = parse_segments_with_optionals(pattern.dup)
-      @captures = @segments.flatten.select { |s| s.is_a?(Symbol) }
+    def match(other)
+      other =~ @pattern and {}
     end
     
   private
@@ -46,7 +47,7 @@ class Rack::Router
       end
 
       # Save any last bit of the string that didn't match the original regex
-      segments.concat parse_segments(path) unless pattern.empty?
+      segments.concat parse_segments(pattern) unless pattern.empty?
 
       # Throw an error if the string should not actually be done (aka syntax error)
       raise ArgumentError, "You have too many opening parentheses" unless nest_level == 0
@@ -65,6 +66,23 @@ class Rack::Router
 
       segments << path unless path.empty?
       segments
+    end
+    
+    def compile(segments)
+      compiled = segments.map do |segment|
+        case segment
+        when String
+          Regexp.escape(segment)
+        when Symbol
+          "(#{@conditions[segment] || SEGMENT_CHARACTERS + "+"})"
+        when Array
+          "(?:#{compile(segment)})?"
+        end
+      end
+      
+      # The URI spec states that sequential slashes is equivalent to a
+      # single slash and that trailing slashes can be ignored.
+      compiled.join.gsub(%r'/+', '/').sub(%r'/+$', '')
     end
     
   end

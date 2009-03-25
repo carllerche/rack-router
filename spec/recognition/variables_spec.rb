@@ -6,7 +6,7 @@ describe "When recognizing requests," do
     
     it "should create keys for each named variable" do
       prepare do |r|
-        r.map "/:foo/:bar", :to => VariableApp
+        r.map "/:foo/:bar", :get, :to => VariableApp
       end
       
       route_for("/one/two").should have_route(VariableApp, :foo => "one", :bar => "two")

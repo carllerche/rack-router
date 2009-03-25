@@ -14,7 +14,7 @@ class Rack::Router::Builder
     end
     
     def map(path, method = nil, options = {})
-      @routes << Rack::Router::Route.new(options[:to], { :path_info => path, :request_method => method.to_s.upcase }, options[:with])
+      @routes << Rack::Router::Route.new(options[:to], { :path_info => path, :request_method => method.to_s.upcase }, options[:with] || {})
     end
     
   end

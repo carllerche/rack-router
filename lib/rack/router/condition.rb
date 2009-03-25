@@ -9,7 +9,11 @@ class Rack::Router
     attr_reader :segments, :pattern, :captures
     
     def initialize(pattern, conditions = {})
-      if pattern.is_a?(String)
+      @segments = {}
+      @captures = {}
+      
+      case pattern
+      when String
         @conditions = {}
         
         conditions.each do |k, v|
@@ -19,8 +23,14 @@ class Rack::Router
         @segments   = parse_segments_with_optionals(pattern.dup)
         @pattern    = Regexp.new("^#{compile(@segments)}$")
         @captures   = @segments.flatten.select { |s| s.is_a?(Symbol) }
+      when Array
+        pattern = pattern.map do |p|
+          p.is_a?(Regexp) ? p.source : "^#{Regexp.escape(p.to_s)}$"
+        end
+        
+        @pattern = Regexp.new(pattern.join('|'))
       else
-        @pattern    = pattern
+        @pattern = pattern
       end
     end
     
@@ -36,6 +46,10 @@ class Rack::Router
     
     def capture_conditions
       @capture_conditions ||= @conditions.reject { |k, v| ! captures.include?(k) }
+    end
+    
+    def inspect
+      @pattern.inspect
     end
     
   private

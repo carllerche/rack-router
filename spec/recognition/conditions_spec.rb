@@ -19,15 +19,28 @@ describe "When recognizing requests," do
     end
   
     it "should ignore trailing slashes" do
-      pending do
-        route_for("/info/").should have_route(FooApp, :action => "info")
+      prepare do |r|
+        r.map "/info/", :get, :to => FooApp, :with => { :action => "info" }
       end
+      
+      route_for("/info").should have_route(FooApp, :action => "info")
     end
   
     it "should ignore repeated slashes" do
-      pending do
-        route_for("//info").should have_route(FooApp, :action => "info")
+      prepare do |r|
+        r.map "//info", :get, :to => FooApp, :with => { :action => "info" }
       end
+      
+      route_for("/info").should have_route(FooApp, :action => "info")
+    end
+    
+    it "should map to the correct rack app" do
+      prepare do |r|
+        r.map "/first",  :get, :to => FirstApp
+        r.map "/second", :get, :to => SecondApp
+      end
+      
+      route_for("/second").should have_route(SecondApp)
     end
     
   end
@@ -35,25 +48,24 @@ describe "When recognizing requests," do
   describe "a route with a Request method condition" do
     
     before(:each) do
-      pending
       prepare do |r|
-        map nil, :post, :to => PostingApp, :with => { :action => "posting" }
+        r.map nil, :post, :to => PostingApp, :with => { :action => "posting" }
       end
     end
     
     it "should match any path with a post method" do
-      route_for("/foo/create/12", :method => "post").should have_route(:controller => "all", :action => "posting")
-      route_for("", :method => "post").should have_route(:controller => "all", :action => "posting")
+      route_for("/foo/create/12", :method => "post").should have_route(PostingApp, :action => "posting")
+      route_for("", :method => "post").should               have_route(PostingApp, :action => "posting")
     end
     
     it "should not match any paths that don't have a post method" do
       route_for("/foo/create/12", :method => "get").should be_missing
-      route_for("", :method => "get").should be_Missing
+      route_for("", :method => "get").should be_missing
     end
     
     it "should combine Array elements using OR" do
       prepare do |r|
-        map nil, [:get, :post], :to => HelloApp, :with => { :action => "index" }
+        r.map nil, [:get, :post], :to => HelloApp, :with => { :action => "index" }
       end
       
       route_for('/anything', :method => "get").should    have_route(HelloApp, :action => "index")
@@ -63,23 +75,23 @@ describe "When recognizing requests," do
     end
     
     it "should be able to handle Regexps inside of condition arrays" do
-      prepare do
-        # match(:method => [/^g[aeiou]?t$/, :post]).to(:controller => "hello")
+      prepare do |r|
+        r.map nil, [/^g[aeiou]?t$/i, :post], :to => HelloApp
       end
       
-      route_for('/anything', :method => "get").should        have_route(:controller => "hello")
-      route_for('/anything', :method => "post").should       have_route(:controller => "hello")
-      lambda { route_for('/anything', :method => "put")    }.should raise_not_found
-      lambda { route_for('/anything', :method => "delete") }.should raise_not_found
+      route_for('/anything', :method => "get").should    have_route(HelloApp)
+      route_for('/anything', :method => "post").should   have_route(HelloApp)
+      route_for('/anything', :method => "put").should    be_missing
+      route_for('/anything', :method => "delete").should be_missing
     end
     
     it "should ignore nil values" do
-      prepare do
-        # match("/hello", :method => nil).to(:controller => "all")
+      prepare do |r|
+        r.map "/hello", :method => nil, :to => HelloApp
       end
       
       [:get, :post, :puts, :delete].each do |method|
-        route_for("/hello", :method => method).should have_route(:controller => "all")
+        route_for("/hello", :method => method).should have_route(HelloApp)
       end
     end
   end

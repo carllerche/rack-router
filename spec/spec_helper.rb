@@ -13,7 +13,7 @@ module Spec
     
     def env_for(path, options = {})
       {
-        "REQUEST_METHOD" => options.delete(:method) || "GET",
+        "REQUEST_METHOD" => (options.delete(:method) || "GET").to_s.upcase,
         "PATH_INFO"      => path
       }
     end
@@ -49,7 +49,7 @@ module Spec
       end
     end
     
-    def have_route(app, expected)
+    def have_route(app, expected = {})
       HaveRoute.new(app, expected)
     end
     

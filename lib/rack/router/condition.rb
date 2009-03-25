@@ -5,6 +5,9 @@ class Rack::Router
   SEGMENT_CHARACTERS     = "[^\/.,;?]".freeze
   
   class Condition
+    
+    attr_reader :segments, :pattern, :captures
+    
     def initialize(pattern, conditions = {})
       if pattern.is_a?(String)
         @conditions = {}
@@ -22,7 +25,17 @@ class Rack::Router
     end
     
     def match(other)
-      other =~ @pattern and {}
+      if data = @pattern.match(other)
+        captures = {}
+        offsets.each do |key, value|
+          captures[key] = data[value]
+        end
+        captures
+      end
+    end
+    
+    def capture_conditions
+      @capture_conditions ||= @conditions.reject { |k, v| ! captures.include?(k) }
     end
     
   private
@@ -83,6 +96,27 @@ class Rack::Router
       # The URI spec states that sequential slashes is equivalent to a
       # single slash and that trailing slashes can be ignored.
       compiled.join.gsub(%r'/+', '/').sub(%r'/+$', '')
+    end
+    
+    def offsets
+      @offsets ||= begin
+        offsets = {}
+        counter = 1
+        
+        captures.each do |capture|
+          offsets[capture] = counter
+          counter += 1 + regexp_arity(capture_conditions[capture])
+        end
+        
+        offsets
+      end
+    end
+    
+    # ==== UTILITIES ====
+    
+    def regexp_arity(regexp)
+      return 0 unless regexp.is_a?(Regexp)
+      regexp.source.scan(/(?!\\)[(](?!\?[#=:!>-imx])/).length
     end
     
   end

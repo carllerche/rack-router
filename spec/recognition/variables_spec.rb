@@ -14,7 +14,7 @@ describe "When recognizing requests," do
     
     it "should be able to match :controller, :action, and :id from the route" do
       prepare do |r|
-        r.map "/:controller/:action/:id", :to => VariableApp
+        r.map "/:controller/:action/:id", :get, :to => VariableApp
       end
       
       route_for("/foo/bar/baz").should have_route(VariableApp, :controller => "foo", :action => "bar", :id => "baz")

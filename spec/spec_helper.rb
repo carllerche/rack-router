@@ -34,14 +34,15 @@ module Spec
         @target = target
         
         if @target[0] == 200
-          @routing_args = YAML.load(@target[2])['rack.routing_args']
-          @expected == @routing_args
+          @resp = YAML.load(@target[2])
+          @app.to_s == @resp['app'] && @expected == @resp['rack.routing_args']
         end
       end
       
       def failure_message
-        if @routing_args
-          "Route matched, but returned: #{@routing_args.inspect}"
+        if @resp
+          # "Route matched, but returned: #{@resp['app']} with #{@resp['routing_args'].inspect}"
+          "Route matched, but returned: #{@resp.inspect}"
         else
           "Route did not match anything"
         end
@@ -51,17 +52,26 @@ module Spec
     def have_route(app, expected)
       HaveRoute.new(app, expected)
     end
+    
+    def be_missing
+      simple_matcher("a not found request") do |given|
+        given[0].should == 404
+      end
+    end
   end
-end
-
-EchoApp = lambda do |env|
-  [ 200, { "Content-Type" => 'text/yaml' }, YAML.dump(env) ]
 end
 
 Object.instance_eval do
   def const_missing(name)
     if name.to_s =~ /App$/
-      EchoApp
+      Object.instance_eval %{
+        class ::#{name}
+          def self.call(env)
+            [ 200, { "Content-Type" => 'text/yaml' }, YAML.dump(env.merge("app" => "#{name}")) ]
+          end
+        end
+        ::#{name}
+      }
     else
       super
     end

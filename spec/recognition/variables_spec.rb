@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
-describe "When recognizing requests," do
+describe "When recognizing requests" do
   
   describe "a route with path variable" do
     

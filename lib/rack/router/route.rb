@@ -35,7 +35,12 @@ class Rack::Router
     end
     
     def generate(params)
-      @request_conditions[:path_info].generate(params)
+      query_params = params.dup
+      # Condition#generate will delete from the hash any params that it uses
+      # that way, we can just append whatever is left to the query string
+      uri  = @request_conditions[:path_info].generate(query_params)
+      uri << "?#{Rack::Utils.build_query(query_params)}" if query_params.any?
+      uri
     end
     
   end

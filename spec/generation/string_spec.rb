@@ -15,9 +15,7 @@ describe "When generating URLs" do
     end
 
     it "appends any parameters to the query string" do
-      pending do
-        @app.url(:simple, :foo => "bar").should == "/hello/world?foo=bar"
-      end
+       @app.url(:simple, :foo => "bar").should == "/hello/world?foo=bar"
     end
     
   end
@@ -35,9 +33,7 @@ describe "When generating URLs" do
     end
 
     it "appends any extra parameters to the query string" do
-      pending do
-        @app.url(:welcome, :account => "seagulls", :like_walruses => "true").should == "/seagulls/welcome?like_walruses=true"
-      end
+      @app.url(:welcome, :account => "seagulls", :like_walruses => "true").should == "/seagulls/welcome?like_walruses=true"
     end
 
     it "raises an error if no parameters are passed" do
@@ -54,6 +50,42 @@ describe "When generating URLs" do
 
     it "raises an error if parameters are passed without :account" do
       lambda { @app.url(:welcome, :foo => "bar") }.should raise_error(ArgumentError)
+    end
+    
+  end
+  
+  describe "a named route with multiple variables and no conditions" do
+    
+    before(:each) do
+      prepare do |r|
+        r.map "/:foo/:bar", :to => FooApp, :name => :foobar
+      end
+    end
+
+    it "generates a URL with parameters passed for both variables" do
+      @app.url(:foobar, :foo => "omg", :bar => "hi2u").should == "/omg/hi2u"
+    end
+
+    it "appends any extra parameters to the query string" do
+      @app.url(:foobar, :foo => "omg", :bar => "hi2u", :fiz => "what", :biz => "bat").should =~ %r[\?(fiz=what&biz=bat|biz=bat&fiz=what)$]
+    end
+    
+    it "does not append nil parameters to the query string" do
+      pending "Should this be true?" do
+        @app.url(:foobar, :foo => "omg", :bar => "hi2u", :fiz => nil).should == "/omg/hi2u"
+      end
+    end
+
+    it "raises an error if the first variable is missing" do
+      lambda { @app.url(:foobar, :bar => "hi2u") }.should raise_error(ArgumentError)
+    end
+
+    it "raises an error if the second variable is missing" do
+      lambda { @app.url(:foobar, :foo => "omg") }.should raise_error(ArgumentError)
+    end
+
+    it "raises an error no variables are passed" do
+      lambda { @app.url(:foobar) }.should raise_error(ArgumentError)
     end
     
   end

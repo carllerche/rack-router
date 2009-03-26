@@ -1,4 +1,4 @@
-require "rack/request"
+require "rack"
 
 module Rack
   class Router

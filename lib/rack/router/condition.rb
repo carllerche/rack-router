@@ -120,7 +120,7 @@ class Rack::Router
     end
     
     def generate_from_segments(segments, params)
-      segments.map do |segment|
+      generated = segments.map do |segment|
         case segment
         when String
           segment
@@ -130,7 +130,12 @@ class Rack::Router
         when Array
           generate_from_segments(segment, params) || ""
         end
-      end.join
+      end
+      
+      # Delete any used items from the params
+      segments.each { |s| params.delete(s) if s.is_a?(Symbol) }
+      
+      generated.join
     end
     
     # ==== UTILITIES ====

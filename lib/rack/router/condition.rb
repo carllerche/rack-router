@@ -9,28 +9,17 @@ class Rack::Router
     attr_reader :segments, :pattern, :captures
     
     def initialize(pattern, conditions = {})
-      @segments = {}
-      @captures = {}
+      @segments   = {}
+      @captures   = {}
+      @conditions = conditions
       
       case pattern
       when String
-        @conditions = {}
-        
-        conditions.each do |k, v|
-          @conditions[k] = Regexp.escape(v) unless v.is_a?(Regexp)
-        end
-        
-        @segments   = parse_segments_with_optionals(pattern.dup)
-        @pattern    = Regexp.new("^#{compile(@segments)}$")
-        @captures   = @segments.flatten.select { |s| s.is_a?(Symbol) }
-      when Array
-        pattern = pattern.map do |p|
-          p.is_a?(Regexp) ? p.source : "^#{Regexp.escape(p.to_s)}$"
-        end
-        
-        @pattern = Regexp.new(pattern.join('|'))
+        @segments = parse_segments_with_optionals(pattern.dup)
+        @pattern  = Regexp.new("^#{compile(@segments)}$")
+        @captures = @segments.flatten.select { |s| s.is_a?(Symbol) }
       else
-        @pattern = pattern
+        @pattern = convert_to_regexp(pattern)
       end
     end
     
@@ -42,10 +31,6 @@ class Rack::Router
         end
         captures
       end
-    end
-    
-    def capture_conditions
-      @capture_conditions ||= @conditions.reject { |k, v| ! captures.include?(k) }
     end
     
     def inspect
@@ -101,7 +86,9 @@ class Rack::Router
         when String
           Regexp.escape(segment)
         when Symbol
-          "(#{@conditions[segment] || SEGMENT_CHARACTERS + "+"})"
+          condition = @conditions[segment] || /#{SEGMENT_CHARACTERS}+/
+          condition = Regexp.escape(condition) unless condition.is_a?(Regexp)
+          "(#{condition})"
         when Array
           "(?:#{compile(segment)})?"
         end
@@ -119,7 +106,7 @@ class Rack::Router
         
         captures.each do |capture|
           offsets[capture] = counter
-          counter += 1 + regexp_arity(capture_conditions[capture])
+          counter += 1 + regexp_arity(@conditions[capture])
         end
         
         offsets
@@ -127,6 +114,14 @@ class Rack::Router
     end
     
     # ==== UTILITIES ====
+    
+    def convert_to_regexp(item)
+      case item
+      when Array  then Regexp.new("^(?:#{item.map { |i| convert_to_regexp(i) }.join("|")})$")
+      when Regexp then item
+      else Regexp.new("^#{Regexp.escape(item.to_s)}$")
+      end
+    end
     
     def regexp_arity(regexp)
       return 0 unless regexp.is_a?(Regexp)

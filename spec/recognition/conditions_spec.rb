@@ -120,8 +120,8 @@ describe "When recognizing requests," do
           r.map "/hello", [:get, :post], :to => HelloApp
         end
 
-        route_for("/hello", :method => "get").should      have_route(HelloApp)
-        route_for("/hello", :method => "post").should     have_route(HelloApp)
+        route_for("/hello",   :method => "get").should    have_route(HelloApp)
+        route_for("/hello",   :method => "post").should   have_route(HelloApp)
         route_for("/hello",   :method => "put").should    be_missing
         route_for("/hello",   :method => "delete").should be_missing
         route_for("/goodbye", :method => "get").should    be_missing

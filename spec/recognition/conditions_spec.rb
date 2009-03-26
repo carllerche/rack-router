@@ -10,15 +10,15 @@ describe "When recognizing requests," do
       end
     end
   
-    it "should match the path and return the paramters passed in" do
+    it "matches the path and return the paramters passed in" do
       route_for("/info").should have_route(FooApp, :action => "info")
     end
   
-    it "should not match a different path" do
+    it "does not match a different path" do
       route_for("/notinfo").should be_missing
     end
   
-    it "should ignore trailing slashes" do
+    it "ignores trailing slashes" do
       prepare do |r|
         r.map "/info/", :get, :to => FooApp, :with => { :action => "info" }
       end
@@ -26,7 +26,7 @@ describe "When recognizing requests," do
       route_for("/info").should have_route(FooApp, :action => "info")
     end
   
-    it "should ignore repeated slashes" do
+    it "ignores repeated slashes" do
       prepare do |r|
         r.map "//info", :get, :to => FooApp, :with => { :action => "info" }
       end
@@ -34,7 +34,7 @@ describe "When recognizing requests," do
       route_for("/info").should have_route(FooApp, :action => "info")
     end
     
-    it "should map to the correct rack app" do
+    it "maps to the correct rack app" do
       prepare do |r|
         r.map "/first",  :get, :to => FirstApp
         r.map "/second", :get, :to => SecondApp
@@ -53,17 +53,17 @@ describe "When recognizing requests," do
       end
     end
     
-    it "should match any path with a post method" do
+    it "matches any path with a post method" do
       route_for("/foo/create/12", :method => "post").should have_route(PostingApp, :action => "posting")
       route_for("", :method => "post").should               have_route(PostingApp, :action => "posting")
     end
     
-    it "should not match any paths that don't have a post method" do
+    it "does not match any paths that don't have a post method" do
       route_for("/foo/create/12", :method => "get").should be_missing
       route_for("", :method => "get").should be_missing
     end
     
-    it "should combine Array elements using OR" do
+    it "combines Array elements using OR" do
       prepare do |r|
         r.map nil, [:get, :post], :to => HelloApp, :with => { :action => "index" }
       end
@@ -74,7 +74,7 @@ describe "When recognizing requests," do
       route_for('/anything', :method => "delete").should be_missing
     end
     
-    it "should be able to handle Regexps inside of condition arrays" do
+    it "handles Regexps inside of condition arrays" do
       prepare do |r|
         r.map nil, [/^g[aeiou]?t$/i, :post], :to => HelloApp
       end
@@ -85,7 +85,7 @@ describe "When recognizing requests," do
       route_for('/anything', :method => "delete").should be_missing
     end
     
-    it "should ignore nil values" do
+    it "ignores nil values" do
       prepare do |r|
         r.map "/hello", :method => nil, :to => HelloApp
       end
@@ -103,19 +103,19 @@ describe "When recognizing requests," do
         end
       end
 
-      it "should match the route if the path and the protocol match" do
+      it "matches the route if the path and the protocol match" do
         route_for("/foo", :scheme => "http").should have_route(ProtocolApp, :action => "text")
       end
 
-      it "should not match if the route does not match" do
+      it "does not match if the route does not match" do
         route_for("/bar", :scheme => "http").should be_missing
       end
 
-      it "should not match if the protocol does not match" do
+      it "does not match if the protocol does not match" do
         route_for("/foo", :scheme => "https").should be_missing
       end
 
-      it "should combine Array elements using OR" do
+      it "combines Array elements using OR" do
         prepare do |r|
           r.map "/hello", [:get, :post], :to => HelloApp
         end

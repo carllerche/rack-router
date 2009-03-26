@@ -4,7 +4,7 @@ describe "When recognizing requests" do
   
   describe "a route a simple param builder" do
     
-    it "should provide the params specified in 'to' statements" do
+    it "provides the params specified in 'to' statements" do
       prepare do |r|
         r.map "/hello", :to => FooApp, :with => { :foo => "bar" }
       end
@@ -12,7 +12,7 @@ describe "When recognizing requests" do
       route_for("/hello").should have_route(FooApp, :foo => "bar")
     end
     
-    it "should be able to handle Numeric params" do
+    it "handles Numeric params" do
       prepare do |r|
         r.map "/hello", :to => FooApp, :with => { :integer => 10, :float => 5.5 }
       end
@@ -20,7 +20,7 @@ describe "When recognizing requests" do
       route_for("/hello").should have_route(FooApp, :integer => 10, :float => 5.5)
     end
     
-    it "should be able to handle Boolean params" do
+    it "handles Boolean params" do
       prepare do |r|
         r.map "/hello", :to => FooApp, :with => { :true => true, :false => false }
       end
@@ -28,7 +28,7 @@ describe "When recognizing requests" do
       route_for("/hello").should have_route(FooApp, :true => true, :false => false)
     end
 
-    it "should be able to extract named segments as params" do
+    it "extracts named segments as params" do
       prepare do |r|
         r.map "/:foo", :to => FooApp
       end
@@ -36,7 +36,7 @@ describe "When recognizing requests" do
       route_for('/bar').should have_route(FooApp, :foo => "bar")
     end
 
-    it "should be able to extract multiple named segments as params" do
+    it "extracts multiple named segments as params" do
       prepare do |r|
         r.map "/:foo/:faz", :to => FooApp
       end

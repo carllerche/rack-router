@@ -4,11 +4,11 @@ describe "When recognizing requests," do
   
   describe "a route with optional segments", :shared => true do
     
-    it "should match when the required segment matches" do
-      route_for("/hello").should have_route(FooApp, :first => 'hello', :second => nil, :third => nil)
+    it "matches when the required segment matches" do
+      route_for("/hello").should have_route(FooApp, :first => 'hello')
     end
     
-    it "should match when the required and optional segment(s) match" do
+    it "matches when the required and optional segment(s) match" do
       route_for("/hello/world/sweet").should have_route(FooApp, :first => "hello", :second => "world", :third => "sweet")
     end
     
@@ -23,24 +23,40 @@ describe "When recognizing requests," do
     
     it_should_behave_like "a route with optional segments"
     
-    it "should not match the route if the optional segment is only partially present" do
+    it "does not match the route if the optional segment is only partially present" do
       route_for("/hello/world").should be_missing
     end
     
-    it "should not match the optional segment if the optional segment is present but doesn't match a named segment condition" do
+    it "does not match the optional segment if the optional segment is present but doesn't match a named segment condition" do
       prepare do |r|
-        r.map "/:first(/:second)", :conditions => { :second => /\d+/ }
+        r.map "/:first(/:second)", :to => FooApp, :conditions => { :second => /\d+/ }
       end
       
       route_for("/hello/world").should be_missing
     end
     
-    it "should not match if the optional segment is present but not the required segment" do
+    it "does not match if the optional segment is present but not the required segment" do
       prepare do |r|
-        r.map "/:first(/:second)", :conditions => { :first => /^[a-z]+$/, :second => /^\d+$/ }
+        r.map "/:first(/:second)", :to => FooApp, :conditions => { :first => /^[a-z]+$/, :second => /^\d+$/ }
       end
       
       route_for("/123").should be_missing
+    end
+    
+    it "uses the captured param if the optional segment matches" do
+      prepare do |r|
+        r.map "/:first(/:second)", :to => FooApp, :with => { :second => "omghi2u" }
+      end
+      
+      route_for("/hello/world").should have_route(FooApp, :first => "hello", :second => "world")
+    end
+    
+    it "populates the optional params with the defaults if the optional segment is not matched" do
+      prepare do |r|
+        r.map "/:first(/:second)", :to => FooApp, :with => { :second => "omghi2u" }
+      end
+      
+      route_for("/hello").should have_route(FooApp, :first => "hello", :second => "omghi2u")
     end
   end
   
@@ -53,20 +69,20 @@ describe "When recognizing requests," do
     
     it_should_behave_like "a route with optional segments"
     
-    it "should match when one optional segment matches" do
-      route_for("/hello/sweet").should have_route(FooApp, :first => "hello", :second => "sweet", :third => nil)
+    it "matches when one optional segment matches" do
+      route_for("/hello/sweet").should have_route(FooApp, :first => "hello", :second => "sweet")
     end
     
-    it "should be able to distinguish the optional segments when there are conditions on them" do
+    it "distinguishes the optional segments when there are conditions on them" do
       prepare do |r|
         r.map "/:first(/:second)(/:third)", :to => FooApp, :conditions => { :second => /\d+/ }
       end
       
-      route_for("/hello/world").should have_route(FooApp, :first => "hello", :second => nil, :third => "world")
-      route_for("/hello/123").should have_route(FooApp, :first => "hello", :second => "123", :third => nil)
+      route_for("/hello/world").should have_route(FooApp, :first => "hello", :third => "world")
+      route_for("/hello/123").should have_route(FooApp, :first => "hello", :second => "123")
     end
     
-    it "should not match any of the optional segments if the segments can't be matched" do
+    it "does not match any of the optional segments if the segments can't be matched" do
       prepare do |r|
         r.map "(/:first/abc)(/:bar)", :to => FooApp
       end
@@ -85,11 +101,11 @@ describe "When recognizing requests," do
     
     it_should_behave_like "a route with optional segments"
     
-    it "should match when the first optional segment matches" do
-      route_for("/hello/world").should have_route(FooApp, :first => "hello", :second => "world", :third => nil)
+    it "matches when the first optional segment matches" do
+      route_for("/hello/world").should have_route(FooApp, :first => "hello", :second => "world")
     end
     
-    it "should not match the nested optional group unless the containing optional group matches" do
+    it "does not match the nested optional group unless the containing optional group matches" do
       prepare do |r|
         r.map "/:first(/:second(/:third))", :to => FooApp, :conditions => { :second => /\d+/ }
       end

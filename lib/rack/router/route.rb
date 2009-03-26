@@ -19,16 +19,20 @@ class Rack::Router
       freeze
     end
     
+    def keys
+      @keys ||= [@request_conditions.map { |c| c.captures }, @params.keys].flatten.uniq
+    end
+    
     def match(env)
       request  = Rack::Request.new(env)
-      captures = {}
+      params = @params.dup
       
       return unless request_conditions.all? do |method_name, condition|
         next true unless request.respond_to?(method_name)
-        capts = condition.match(request.send(method_name)) and captures.merge!(capts)
+        capts = condition.match(request.send(method_name)) and params.merge!(capts)
       end
       
-      captures.merge! @params
+      params
     end
     
   end

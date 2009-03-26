@@ -21,7 +21,7 @@ module Rack
           # The routing args are destructively merged into the rack
           # environment so that they can be used by any application
           # called by the router or any app downstream.
-          env.merge! "rack.routing_args" => args
+          env.merge! "rack.route" => route, "rack.routing_args" => args
           
           # Call the application that the route points to
           result = route.app.call(env)

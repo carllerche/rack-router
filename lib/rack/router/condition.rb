@@ -27,7 +27,7 @@ class Rack::Router
       if data = @pattern.match(other)
         captures = {}
         offsets.each do |key, value|
-          captures[key] = data[value]
+          captures[key] = data[value] if data[value]
         end
         captures
       end

@@ -8,3 +8,6 @@ Some points for discussion:
 * Passing routing parameters to the app
 * How should an application tell the router that it cannot handle
   the request?
+* Should I pass in the matched route in the env
+* Should I allow an arbitrary hash to be set on the route (so that you
+  can track any information).

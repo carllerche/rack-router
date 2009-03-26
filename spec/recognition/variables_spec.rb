@@ -4,7 +4,7 @@ describe "When recognizing requests," do
   
   describe "a route with path variable" do
     
-    it "should create keys for each named variable" do
+    it "creates keys for each named variable" do
       prepare do |r|
         r.map "/:foo/:bar", :to => VariableApp
       end
@@ -12,7 +12,7 @@ describe "When recognizing requests," do
       route_for("/one/two").should have_route(VariableApp, :foo => "one", :bar => "two")
     end
     
-    it "should be able to match :controller, :action, and :id from the route" do
+    it "matches a :controller, :action, and :id route" do
       prepare do |r|
         r.map "/:controller/:action/:id", :get, :to => VariableApp
       end
@@ -20,23 +20,15 @@ describe "When recognizing requests," do
       route_for("/foo/bar/baz").should have_route(VariableApp, :controller => "foo", :action => "bar", :id => "baz")
     end
     
-    it "should be able to overwrite matched named variables in the params" do
+    it "gives priority to the captures over the specified params" do
       prepare do |r|
         r.map "/:foo/:bar", :to => VariableApp, :with => { :foo => "foo", :bar => "bar" }
       end
       
-      route_for("/one/two").should have_route(VariableApp, :foo => "foo", :bar => "bar")
+      route_for("/one/two").should have_route(VariableApp, :foo => "one", :bar => "two")
     end
     
-    it "should be able to block named variables from being present in the params" do
-      prepare do |r|
-        r.map "/:foo/:bar", :to => VariableApp, :with => { :foo => nil, :bar => nil }
-      end
-      
-      route_for("/one/two").should have_route(VariableApp, :foo => nil, :bar => nil)
-    end
-    
-    it "should match single character names" do
+    it "matches single character names" do
       prepare do |r|
         r.map "/:x/:y", :to => VariableApp
       end
@@ -44,7 +36,7 @@ describe "When recognizing requests," do
       route_for("/40/20").should have_route(VariableApp, :x => "40", :y => "20")
     end
     
-    it "should not swallow trailing underscores in the segment name" do
+    it "does not swallow trailing underscores in the segment name" do
       prepare do |r|
         r.map "/:foo_", :to => VariableApp
       end
@@ -56,7 +48,7 @@ describe "When recognizing requests," do
 
   describe "a route with path variable conditions" do
     
-    it "should match only if the condition is satisfied" do
+    it "matches only if the condition is satisfied" do
       prepare do |r|
         r.map "/foo/:bar", :to => FooApp, :conditions => { :bar => /\d+/ }
       end
@@ -65,7 +57,7 @@ describe "When recognizing requests," do
       route_for("/foo/abc").should be_missing
     end
     
-    it "should match only if all conditions are satisfied" do
+    it "matches only if all conditions are satisfied" do
       prepare do |r|
         r.map "/:foo/:bar", :to => FooApp, :conditions => { :foo => /abc/, :bar => /123/ }
       end
@@ -79,7 +71,7 @@ describe "When recognizing requests," do
       route_for("/ab/12").should     be_missing
     end
     
-    it "should allow creating conditions that span default segment dividers" do
+    it "allows creating conditions that span default segment dividers" do
       prepare do |r|
         r.map "/:lol", :to => FooApp, :conditions => { :lol => %r[[a-z]+/[a-z]+] }
       end
@@ -88,7 +80,7 @@ describe "When recognizing requests," do
       route_for("/somewhere/somehow").should have_route(FooApp, :lol => "somewhere/somehow")
     end
     
-    it "should allow creating conditions that match everything" do
+    it "allows creating conditions that match everything" do
       prepare do |r|
         r.map "/:glob", :to => FooApp, :conditions => { :glob => /.*/ }
       end
@@ -98,7 +90,7 @@ describe "When recognizing requests," do
       end
     end
     
-    it "should allow greedy matches to precede segments" do
+    it "allows greedy matches to precede segments" do
       prepare do |r|
         r.map "/foo/:bar/something/:else", :to => FooApp, :conditions => { :bar => /.*/ }
       end
@@ -108,7 +100,7 @@ describe "When recognizing requests," do
       end
     end
     
-    it "should allow creating conditions that proceed a glob" do
+    it "allows creating conditions that proceed a glob" do
       prepare do |r|
         r.map "/:foo/bar/:glob", :to => FooApp, :conditions => { :glob => /.*/ }
       end
@@ -119,7 +111,7 @@ describe "When recognizing requests," do
       end
     end
     
-    it "should match only if all mixed conditions are satisfied" do
+    it "matches only if all mixed conditions are satisfied" do
       prepare do |r|
         r.map "/:blog/post/:id", :to => FooApp, :conditions => { :blog => %r{[a-zA-Z]+}, :id => %r{[0-9]+} }
       end

@@ -1,0 +1,107 @@
+require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
+
+describe "When generating URLs" do
+  
+  describe "a route with one condition" do
+    
+    # it "generates when the string condition is met" do
+    #   prepare do |r|
+    #     match("/:account", :account => "walruses").name(:condition)
+    #   end
+    # 
+    #   url(:condition, :account => "walruses").should == "/walruses"
+    # end
+    
+    # it "generates when the regexp condition that is met" do
+    #   Merb::Router.prepare do
+    #     match("/:account", :account => /[a-z]+/).name(:condition)
+    #   end
+    # 
+    #   url(:condition, :account => "walruses").should == "/walruses"
+    # end
+    # 
+    # it "should not generate if the String condition is not met" do
+    #   Merb::Router.prepare do
+    #     match("/:account", :account => "walruses").name(:condition)
+    #   end
+    # 
+    #   lambda { url(:condition, :account => "pecans") }.should raise_error(Merb::Router::GenerationError)
+    # end
+    # 
+    # it "should not generate if the Regexp condition is not met" do
+    #   Merb::Router.prepare do
+    #     match("/:account", :account => /[a-z]+/).name(:condition)
+    #   end
+    # 
+    #   lambda { url(:condition, :account => "29") }.should raise_error(Merb::Router::GenerationError)
+    # end
+    # 
+    # it "should work with numbers" do
+    #   Merb::Router.prepare do
+    #     match("/hello/:id", :id => /^\d+$/).name(:number)
+    #   end
+    #   
+    #   url(:number, :id => 10).should == "/hello/10"
+    #   lambda { url(:number, :id => true) }.should raise_error(Merb::Router::GenerationError)
+    # end
+    # 
+    # it "should respect Regexp anchors" do
+    #   Merb::Router.prepare do
+    #     match("/:account") do
+    #       match(:account => /^[a-z]+$/).name(:both )
+    #       match(:account => /^[a-z]+/ ).name(:start)
+    #       match(:account => /[a-z]+$/ ).name(:end  )
+    #       match(:account => /[a-z]+/  ).name(:none )
+    #     end
+    #   end
+    # 
+    #   # Success
+    #   url(:both,  :account => "abc").should == "/abc"
+    #   url(:start, :account => "abc").should == "/abc"
+    #   url(:start, :account => "ab1").should == "/ab1"
+    #   url(:end,   :account => "abc").should == "/abc"
+    #   url(:end,   :account => "1ab").should == "/1ab"
+    #   url(:none,  :account => "abc").should == "/abc"
+    #   url(:none,  :account => "1ab").should == "/1ab"
+    #   url(:none,  :account => "ab1").should == "/ab1"
+    # 
+    #   # Failure
+    #   lambda { url(:both,  :account => "1ab") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:both,  :account => "ab1") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:both,  :account => "123") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:start, :account => "1ab") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:start, :account => "123") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:end,   :account => "ab1") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:end,   :account => "123") }.should raise_error(Merb::Router::GenerationError)
+    #   lambda { url(:none,  :account => "123") }.should raise_error(Merb::Router::GenerationError)
+    # end
+    # 
+    # it "should work with Regexp conditions that contain capturing parentheses" do
+    #   Merb::Router.prepare do
+    #     match("/:domain", :domain => /[a-z]+\.(com|net)/).name(:condition)
+    #   end
+    # 
+    #   url(:condition, :domain => "foobar.com").should == "/foobar.com"
+    #   lambda { url(:condition, :domain => "foobar.org") }.should raise_error(Merb::Router::GenerationError)
+    # end
+    # 
+    # it "should work with Regexp conditions that contain non-capturing parentheses" do
+    #   Merb::Router.prepare do
+    #     match("/:domain", :domain => /[a-z]+\.(com|net)/).name(:condition)
+    #   end
+    # 
+    #   url(:condition, :domain => "foobar.com").should == "/foobar.com"
+    #   lambda { url(:condition, :domain => "foobar.org") }.should raise_error(Merb::Router::GenerationError)
+    # end
+    # 
+    # it "should not take into consideration conditions on request methods" do
+    #   Merb::Router.prepare do
+    #     match("/one/two", :method => :post).name(:simple)
+    #   end
+    #   
+    #   url(:simple).should == "/one/two"
+    # end
+    
+  end
+  
+end

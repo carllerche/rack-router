@@ -33,5 +33,9 @@ module Rack
       
       @app.call(env)
     end
+    
+    def end_points
+      @end_points ||= @routes.map { |r| r.app }.uniq
+    end
   end
 end

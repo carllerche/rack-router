@@ -33,17 +33,17 @@ class Rack::Router
           # called by the router or any app downstream.
           env.merge! "rack.route" => route, "rack.routing_args" => args
           
-          return true unless route.app
+          return true, nil unless route.app
           
           # Call the application that the route points to
           result = route.app.call(env)
           
           # Return the result unless the app was not able to handle
-          return result unless result[0] == 404
+          return true, result unless result[0] == 404
         end
       end
       
-      false
+      return false, nil
     end
     
     def url(name, params = {})

@@ -16,9 +16,9 @@ module Rack
       prepare(options, &block)
     end
     
-    # TODO: Make this not be stupid (it should always return a rack request)
     def call(env)
-      route(env) || @app.call(env)
+      matched, response = route(env)
+      response || @app.call(env)
     end
     
     def end_points

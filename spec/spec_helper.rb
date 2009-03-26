@@ -68,7 +68,11 @@ Object.instance_eval do
       Object.instance_eval %{
         class ::#{name}
           def self.call(env)
-            [ 200, { "Content-Type" => 'text/yaml' }, YAML.dump(env.merge("app" => "#{name}")) ]
+            resp = {}
+            resp['rack.routing_args'] = env['rack.routing_args']
+            resp['app'] = '#{name}'
+            
+            [ 200, { "Content-Type" => 'text/yaml' }, YAML.dump(resp) ]
           end
         end
         ::#{name}

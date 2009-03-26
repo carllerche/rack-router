@@ -23,8 +23,7 @@ class Rack::Router
       @keys ||= [@request_conditions.map { |c| c.captures }, @params.keys].flatten.uniq
     end
     
-    def match(env)
-      request  = Rack::Request.new(env)
+    def match(request)
       params = @params.dup
       
       return unless request_conditions.all? do |method_name, condition|
@@ -33,6 +32,10 @@ class Rack::Router
       end
       
       params
+    end
+    
+    def generate(params)
+      @request_conditions[:path_info].generate(params)
     end
     
   end

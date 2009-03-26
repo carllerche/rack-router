@@ -1,6 +1,10 @@
 class Rack::Router::Builder
   class Simple
     
+    # Route format:
+    # ---
+    # :scheme :// :subdomain . :domain / :path
+    # { :scheme => :scheme, :host => :host, :subdomain => :subdomain, :domain => :domain, :path => :path }
     def self.run(options = {})
       builder = new
       yield builder
@@ -20,7 +24,10 @@ class Rack::Router::Builder
       conditions[:path_info]      = path if path
       conditions[:request_method] = upcase_method(args.last) if args.last
       
-      @routes << Rack::Router::Route.new(options[:to], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {})
+      route = Rack::Router::Route.new(options[:to], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {})
+      route.name = options[:name].to_sym if options[:name]
+      
+      @routes << route
     end
     
   private

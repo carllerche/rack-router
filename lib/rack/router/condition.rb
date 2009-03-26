@@ -13,6 +13,8 @@ class Rack::Router
       @captures   = {}
       @conditions = conditions
       
+      @conditions.default = /#{SEGMENT_CHARACTERS}+/
+      
       case pattern
       when String
         @segments = parse_segments_with_optionals(pattern.dup)
@@ -31,6 +33,10 @@ class Rack::Router
         end
         captures
       end
+    end
+    
+    def generate(params)
+      generate_from_segments(@segments, params) or raise ArgumentError, "Condition cannot be generated with #{params.inspect}"
     end
     
     def inspect
@@ -86,7 +92,7 @@ class Rack::Router
         when String
           Regexp.escape(segment)
         when Symbol
-          condition = @conditions[segment] || /#{SEGMENT_CHARACTERS}+/
+          condition = @conditions[segment]
           condition = Regexp.escape(condition) unless condition.is_a?(Regexp)
           "(#{condition})"
         when Array
@@ -111,6 +117,20 @@ class Rack::Router
         
         offsets
       end
+    end
+    
+    def generate_from_segments(segments, params)
+      segments.map do |segment|
+        case segment
+        when String
+          segment
+        when Symbol
+          return unless params[segment] && params[segment].to_s =~ @conditions[segment]
+          params[segment]
+        when Array
+          generate_from_segments(segment, params) || ""
+        end
+      end.join
     end
     
     # ==== UTILITIES ====

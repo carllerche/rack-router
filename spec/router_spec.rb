@@ -21,4 +21,20 @@ describe Rack::Router do
     @app.end_points.should == [OneApp, TwoApp]
   end
   
+  it "raises an error if a route is created without specifying an end point" do
+    lambda do
+      prepare do |r|
+        r.map "/hello"
+      end
+    end.should raise_error(ArgumentError)
+  end
+  
+  it "raises an error if a route is created with an invalid rack application as an end point" do
+    lambda do
+      prepare do |r|
+        r.map "/hello", :to => "HelloApp"
+      end
+    end.should raise_error(ArgumentError)
+  end
+  
 end

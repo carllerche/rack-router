@@ -125,7 +125,7 @@ class Rack::Router
         when String
           segment
         when Symbol
-          return unless params[segment] && params[segment].to_s =~ @conditions[segment]
+          return unless params[segment] && params[segment].to_s =~ convert_to_regexp(@conditions[segment])
           params[segment]
         when Array
           generate_from_segments(segment, params) || ""

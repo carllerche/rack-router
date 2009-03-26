@@ -9,6 +9,8 @@ class Rack::Router
       @request_conditions = request_conditions
       @segment_conditions = segment_conditions
       @params             = params
+      
+      raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
     end
     
     def compile

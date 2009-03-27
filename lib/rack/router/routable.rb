@@ -23,27 +23,15 @@ class Rack::Router
     end
     
     # TODO: Figure out the API of this method
-    def route(env)
+    def handle(env, context = nil)
       request  = Rack::Request.new(env)
       
       for route in routes
-        if args = route.match(request)
-          # The routing args are destructively merged into the rack
-          # environment so that they can be used by any application
-          # called by the router or any app downstream.
-          env.merge! "rack.route" => route, "rack.routing_args" => args
-          
-          return true, nil unless route.app
-          
-          # Call the application that the route points to
-          result = route.app.call(env)
-          
-          # Return the result unless the app was not able to handle
-          return true, result unless result[0] == 404
-        end
+        route, params, response = route.handle(request, context)
+        return route, params, response if route
       end
       
-      return false, nil
+      return nil, {}, nil
     end
     
     def url(name, params = {})

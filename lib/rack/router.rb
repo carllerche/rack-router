@@ -17,7 +17,7 @@ module Rack
     end
     
     def call(env)
-      matched, response = route(env)
+      route, params, response = handle(env)
       response || @app.call(env)
     end
     

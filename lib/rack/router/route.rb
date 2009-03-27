@@ -25,15 +25,30 @@ class Rack::Router
       @keys ||= [@request_conditions.map { |c| c.captures }, @params.keys].flatten.uniq
     end
     
-    def match(request)
-      params = @params.dup
-      
-      return unless request_conditions.all? do |method_name, condition|
-        next true unless request.respond_to?(method_name)
-        capts = condition.match(request.send(method_name)) and params.merge!(capts)
+    def mount_point?
+      @app.is_a?(Routable)
+    end
+    
+    def handle(request, context = nil)
+      if mount_point?
+        # Do something that involves matching a child app
+        raise NotImplementedError
+      else
+        params = @params.dup
+        
+        return nil, {}, nil unless request_conditions.all? do |method_name, condition|
+          next true unless request.respond_to?(method_name)
+          capts = condition.match(request.send(method_name)) and params.merge!(capts)
+        end
+        
+        return self, params, nil unless @app
+        
+        env = request.env.merge "rack.route" => self, "rack.routing_args" => params
+        
+        result = @app.call(env)
+        
+        return result[0] != 404 && self, params, result
       end
-      
-      params
     end
     
     def generate(params)

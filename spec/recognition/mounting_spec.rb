@@ -35,6 +35,7 @@ describe "When recognizing requests" do
   it "handles combining paths when mounting routers" do
     prepare do |r|
       r.map "/hello", :to => router { |c| c.map "/world", :to => FooApp }
+      r.map "/hello/world", :to => FailApp
     end
     
     route_for("/hello/world").should have_route(FooApp)

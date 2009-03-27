@@ -85,4 +85,27 @@ describe "When generating URLs" do
     
   end
   
+  describe "a route with multiple conditions" do
+    
+    before(:each) do
+      prepare do |r|
+        r.map "/:one/:two", :to => FooApp, :conditions => { :one => "hello", :two => %r[^(world|moon)$] }, :name => :condition
+      end
+    end
+
+    it "generates if all the conditions are met" do
+      @app.url(:condition, :one => "hello", :two => "moon").should == "/hello/moon"
+    end
+
+    it "does not generate if any of the conditions fail" do
+      lambda { @app.url(:condition, :one => "hello") }.should raise_error(ArgumentError)
+      lambda { @app.url(:condition, :two => "world") }.should raise_error(ArgumentError)
+    end
+
+    it "appends any extra elements to the query string" do
+      @app.url(:condition, :one => "hello", :two => "world", :three => "moon").should == "/hello/world?three=moon"
+    end
+    
+  end
+  
 end

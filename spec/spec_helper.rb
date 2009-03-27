@@ -8,13 +8,18 @@ require "rack/router"
 module Spec
   module Helpers
     def prepare(options = {}, &block)
-      @app = Rack::Router.new(nil, options, &block)
+      @app = router(options, &block)
+    end
+    
+    def router(options = {}, &block)
+      Rack::Router.new(nil, options, &block)
     end
     
     def env_for(path, options = {})
       env = {}
       env["REQUEST_METHOD"]  = (options.delete(:method) || "GET").to_s.upcase
       env["PATH_INFO"]       = path
+      env["HTTP_HOST"]       = options.delete(:host) || "example.org"
       env["rack.url_scheme"] = options[:scheme] if options[:scheme]
       env
     end

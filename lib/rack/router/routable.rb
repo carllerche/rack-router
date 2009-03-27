@@ -22,12 +22,11 @@ class Rack::Router
       self
     end
     
-    # TODO: Figure out the API of this method
-    def handle(env, context = nil)
+    def handle(env, path_prefix = "")
       request  = Rack::Request.new(env)
       
       for route in routes
-        route, params, response = route.handle(request, context)
+        route, params, response = route.handle(request, path_prefix)
         return route, params, response if route
       end
       

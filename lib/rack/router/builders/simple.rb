@@ -17,12 +17,15 @@ class Rack::Router::Builder
       @routes = []
     end
     
-    def map(path, *args)
+    def map(*args)
       options = args.last.is_a?(Hash) ? args.pop : {}
+      
+      path   = args[0]
+      method = args[1]
       
       conditions                  = options[:conditions] || {}
       conditions[:path_info]      = path if path
-      conditions[:request_method] = upcase_method(args.last) if args.last
+      conditions[:request_method] = upcase_method(method) if method
       
       route = Rack::Router::Route.new(options[:to], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {})
       route.name = options[:name].to_sym if options[:name]

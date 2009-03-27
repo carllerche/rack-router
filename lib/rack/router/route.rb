@@ -10,12 +10,19 @@ class Rack::Router
       @segment_conditions = segment_conditions
       @params             = params
       
+      # TODO: Temporary hack to get simple path prefixing working
+      if mount_point?
+        @path_prefix = request_conditions[:path_info].to_s
+      end
+      
       raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
     end
     
     def compile
-      @request_conditions.each do |k, pattern|
-        @request_conditions[k] = Condition.new(pattern, segment_conditions)
+      @request_conditions.each do |method_name, pattern|
+        @request_conditions[method_name] = method_name == :path_info ?
+          PathCondition.new(pattern, segment_conditions) :
+          Condition.new(pattern, segment_conditions)
       end
       
       freeze
@@ -25,23 +32,39 @@ class Rack::Router
       @keys ||= [@request_conditions.map { |c| c.captures }, @params.keys].flatten.uniq
     end
     
+    # Determines whether or not the current route is a mount point to a child
+    # router.
     def mount_point?
       @app.is_a?(Routable)
     end
     
-    def handle(request, context = nil)
+    # Handles the given request. If the route matches the request, it will
+    # dispatch to the associated rack application.
+    #
+    # TODO: Try to refactor this so that there is less duplication
+    def handle(request, path_prefix)
       if mount_point?
-        # Do something that involves matching a child app
-        raise NotImplementedError
+        # Make sure that all the conditions are satisfied except for path_info
+        return nil, {}, nil unless request_conditions.all? do |method_name, condition|
+          next true unless request.respond_to?(method_name)
+          method_name == :path_info || condition.match(request.send(method_name))
+        end
+        
+        # TODO: Refactor the hax
+        path_prefix << @path_prefix
+        
+        # The route points to a child router, so defer routing to the
+        # child by calling it's handle method and passing in the current
+        # path_prefix.
+        return @app.handle(request.env, path_prefix)
       else
         params = @params.dup
         
+        # Next, try matching the current route.
         return nil, {}, nil unless request_conditions.all? do |method_name, condition|
           next true unless request.respond_to?(method_name)
-          capts = condition.match(request.send(method_name)) and params.merge!(capts)
+          capts = condition.match(request.send(method_name), method_name == :path_info && path_prefix) and params.merge!(capts)
         end
-        
-        return self, params, nil unless @app
         
         env = request.env.merge "rack.route" => self, "rack.routing_args" => params
         
@@ -51,6 +74,8 @@ class Rack::Router
       end
     end
     
+    # Generates a URI from the route given the passed parameters
+    # ====
     def generate(params)
       query_params = params.dup
       # Condition#generate will delete from the hash any params that it uses

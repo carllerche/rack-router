@@ -25,7 +25,7 @@ class Rack::Router
       end
     end
     
-    def match(other)
+    def match(other, prefix = nil)
       if data = @pattern.match(other)
         captures = {}
         offsets.each do |key, value|
@@ -100,9 +100,7 @@ class Rack::Router
         end
       end
       
-      # The URI spec states that sequential slashes is equivalent to a
-      # single slash and that trailing slashes can be ignored.
-      compiled.join.gsub(%r'/+', '/').sub(%r'/+$', '')
+      compiled.join
     end
     
     def offsets
@@ -153,5 +151,32 @@ class Rack::Router
       regexp.source.scan(/(?!\\)[(](?!\?[#=:!>-imx])/).length
     end
     
+  end
+
+  class PathCondition < Condition
+    
+    def match(other, prefix = nil)
+      # This is for handling path prefix mounting
+      if prefix
+        return unless other =~ Regexp.new("^#{Regexp.escape(prefix)}")
+        other = $' # Set other to the post match
+      end
+      
+      super(other)
+    end
+    
+  private
+  
+    def compile(segments)
+      normalize(super)
+    end
+  
+    # The URI spec states that sequential slashes is equivalent to a
+    # single slash and that trailing slashes can be ignored.
+    #
+    # TODO: A thought occurs, right now, I am normalizing every condition
+    def normalize(pattern)
+      pattern.gsub(%r'/+', '/').sub(%r'/+$', '')
+    end
   end
 end

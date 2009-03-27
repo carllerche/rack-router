@@ -3,10 +3,11 @@ require "rack"
 module Rack
   class Router
     
-    autoload :Routable,  'rack/router/routable'
-    autoload :Route,     'rack/router/route'
-    autoload :Condition, 'rack/router/condition'
-    autoload :Builder,   'rack/router/builders'
+    autoload :Routable,      'rack/router/routable'
+    autoload :Route,         'rack/router/route'
+    autoload :Condition,     'rack/router/condition'
+    autoload :PathCondition, 'rack/router/condition'
+    autoload :Builder,       'rack/router/builders'
     
     include Routable
     

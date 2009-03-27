@@ -38,8 +38,8 @@ describe "When recognizing requests" do
     end
     
     route_for("/hello/world").should have_route(FooApp)
-    # route_for("/hello").should be_missing
-    # route_for("/world").should be_missing
+    route_for("/hello").should be_missing
+    route_for("/world").should be_missing
   end
   
 end

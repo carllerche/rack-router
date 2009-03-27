@@ -6,7 +6,7 @@ class Rack::Router
   
   class Condition
     
-    attr_reader :segments, :pattern, :captures
+    attr_reader :segments, :captures
     
     def initialize(pattern, conditions = {})
       @segments   = {}
@@ -18,15 +18,20 @@ class Rack::Router
       case pattern
       when String
         @segments = parse_segments_with_optionals(pattern.dup)
-        @pattern  = Regexp.new("^#{compile(@segments)}$")
+        @compiled = compile(@segments)
+        @pattern  = Regexp.new("^#{@compiled}$")
         @captures = @segments.flatten.select { |s| s.is_a?(Symbol) }
       else
         @pattern = convert_to_regexp(pattern)
       end
     end
     
+    def pattern(prefix = nil)
+      @pattern
+    end
+    
     def match(other, prefix = nil)
-      if data = @pattern.match(other)
+      if data = pattern(prefix).match(other)
         captures = {}
         offsets.each do |key, value|
           captures[key] = data[value] if data[value]
@@ -155,14 +160,10 @@ class Rack::Router
 
   class PathCondition < Condition
     
-    def match(other, prefix = nil)
-      # This is for handling path prefix mounting
-      if prefix
-        return unless other =~ Regexp.new("^#{Regexp.escape(prefix)}")
-        other = $' # Set other to the post match
-      end
-      
-      super(other)
+    def pattern(prefix = nil)
+      return @pattern unless prefix
+      normalized = normalize("#{Regexp.escape(prefix)}#{@compiled}")
+      Regexp.new("^#{normalized}$")
     end
     
   private

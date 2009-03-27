@@ -76,4 +76,92 @@ describe "When generating URLs" do
     
   end
   
+  describe "a named route with nested optional segments" do
+    
+    before(:each) do
+      prepare do |r|
+        r.map "/:controller(/:action(/:id))", :to => FooApp, :name => :nested
+      end
+    end
+
+    it "generates the full route if all the necessary paramters are supplied" do
+      @app.url(:nested, :controller => "users", :action => "show", :id => 5).should == "/users/show/5"
+    end
+
+    it "generates only the required segment if no optional paramters are supplied" do
+      @app.url(:nested, :controller => "users").should == "/users"
+    end
+
+    it "generates the first optional level when deeper levels are not provided" do
+      @app.url(:nested, :controller => "users", :action => "show").should == "/users/show"
+    end
+
+    it "adds deeper level of optional parameters to the query string if a middle level is not provided" do
+      @app.url(:nested, :controller => "users", :id => 5).should == "/users?id=5"
+    end
+
+    it "raises an error if the required segment is not provided" do
+      lambda { @app.url(:nested, :action => "show") }.should raise_error(ArgumentError)
+      lambda { @app.url(:nested, :id => 5) }.should raise_error(ArgumentError)
+      lambda { @app.url(:nested, :action => "show", :id => 5) }.should raise_error(ArgumentError)
+    end
+
+    it "adds extra parameters to the query string" do
+      @app.url(:nested, :controller => "users", :foo => "bar").should == "/users?foo=bar"
+      @app.url(:nested, :controller => "users", :action => "show", :foo => "bar").should == "/users/show?foo=bar"
+      @app.url(:nested, :controller => "users", :action => "show", :id => "2", :foo => "bar").should == "/users/show/2?foo=bar"
+    end
+    
+  end
+  
+  describe "a named route with multiple optional segments" do
+    
+    before(:each) do
+      prepare do |r|
+        r.map "/:controller(/:action)(.:format)", :to => FooApp, :name => :multi
+      end
+    end
+
+    it "generates the full route if all the parameters are provided" do
+      @app.url(:multi, :controller => "articles", :action => "recent", :format => "rss").should == "/articles/recent.rss"
+    end
+
+    it "generates the first optional segment without the second when the second segment is not specified" do
+      @app.url(:multi, :controller => "articles", :action => "recent").should == "/articles/recent"
+    end
+
+    it "generates the second optional segment without the first when the first segment is not specified" do
+      @app.url(:multi, :controller => "articles", :format => "xml").should == "/articles.xml"
+    end
+    
+  end
+  
+  describe "a named route with multiple optional segments containing nested optional segments" do
+    
+    before(:each) do
+      prepare do |r|
+        r.map "/:controller(/:action(/:id))(.:format)", :to => FooApp, :name => :default
+      end
+    end
+
+    it "generates the full route when all the parameters are provided" do
+      @app.url(:default, :controller => "posts", :action => "show", :id => "5", :format => :js).should ==
+        "/posts/show/5.js"
+    end
+
+    it "generates with just the required parameter" do
+      @app.url(:default, :controller => "posts").should == "/posts"
+    end
+
+    it "generates the first optional segment without the second when the second segment is not specified" do
+      @app.url(:default, :controller => "posts", :action => "show").should == "/posts/show"
+      @app.url(:default, :controller => "posts", :action => "show", :id => "5").should == "/posts/show/5"
+    end
+
+    it "generates the second optional segment without the first when the first segment is not specified" do
+      @app.url(:default, :controller => "posts", :format => "html").should == "/posts.html"
+    end
+    
+  end
+  
 end

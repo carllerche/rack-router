@@ -1,7 +1,7 @@
 class Rack::Router
   class Route
     
-    attr_reader   :app, :request_conditions, :segment_conditions, :params
+    attr_reader   :app, :request_conditions, :segment_conditions, :params, :router
     attr_accessor :name
     
     def initialize(app, request_conditions, segment_conditions, params)
@@ -12,13 +12,17 @@ class Rack::Router
       
       # TODO: Temporary hack to get simple path prefixing working
       if mount_point?
-        @path_prefix = request_conditions[:path_info].to_s
+        raise MountError, "#{@app} has already been mounted" if @app.mounted?
+        @app.mount_point = self
+        @path_prefix  = request_conditions[:path_info].to_s
       end
       
       raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
     end
     
-    def compile
+    def compile(router)
+      @router = router
+      
       @request_conditions.each do |method_name, pattern|
         @request_conditions[method_name] = method_name == :path_info ?
           PathCondition.new(pattern, segment_conditions) :

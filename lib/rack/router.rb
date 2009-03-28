@@ -3,6 +3,8 @@ require "rack"
 module Rack
   class Router
     
+    class MountError < StandardError ; end
+    
     autoload :Routable,      'rack/router/routable'
     autoload :Route,         'rack/router/route'
     autoload :Condition,     'rack/router/condition'
@@ -20,10 +22,6 @@ module Rack
     def call(env)
       route, params, response = handle(env)
       response || @app.call(env)
-    end
-    
-    def end_points
-      @end_points ||= @routes.map { |r| r.app }.uniq
     end
     
     def fallback

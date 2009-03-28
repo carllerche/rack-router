@@ -1,13 +1,7 @@
 class Rack::Router
   module Routable
     
-    def routes
-      @routes ||= []
-    end
-    
-    def named_routes
-      @named_routes ||= {}
-    end
+    attr_accessor :mount_point
     
     def prepare(options = {}, &block)
       builder = options.delete(:builder) || Builder::Simple
@@ -15,7 +9,7 @@ class Rack::Router
       @named_routes = {}
       
       @routes.each do |route|
-        route.compile
+        route.compile(self)
         @named_routes[route.name] = route if route.name
       end
       
@@ -34,11 +28,55 @@ class Rack::Router
     end
     
     def url(name, params = {})
-      unless route = named_routes[name]
-        raise ArgumentError, "Cannot find route named '#{name}'"
+      route = _named_routes[name]
+      
+      # Search up the router chain
+      unless route
+        router = self
+        while !route && (router = router.parent)
+          route = router._named_routes[name]
+        end
       end
       
+      raise ArgumentError, "Cannot find route named '#{name}'" unless route
+      
       route.generate(params)
+    end
+    
+    def routes
+      @routes ||= []
+    end
+    
+    def named_routes
+      @named_routes ||= {}
+    end
+    
+    def mounted?
+      mount_point
+    end
+    
+    def parent
+      mounted? && mount_point.router
+    end
+    
+    def children
+      @routes.map { |r| r.app if r.mount_point? }.compact.uniq
+    end
+    
+    def end_points
+      @end_points ||= @routes.map { |r| r.app unless r.mount_point? }.compact.uniq
+    end
+    
+  protected
+  
+    def _named_routes
+      @_named_routes ||= begin
+        _named_routes = {}
+        children.reverse.each do |c|
+          _named_routes.merge! c._named_routes
+        end
+        _named_routes.merge! @named_routes
+      end
     end
     
   end

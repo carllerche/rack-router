@@ -30,11 +30,11 @@ class Rack::Router
       @pattern
     end
     
-    def match(other, prefix = nil)
-      if data = pattern(prefix).match(other)
+    def match(value, prefix = nil)
+      if data = pattern(prefix).match(value)
         captures = {}
-        offsets.each do |key, value|
-          captures[key] = data[value] if data[value]
+        offsets.each do |capture, offset|
+          captures[capture] = data[offset] if data[offset]
         end
         captures
       end
@@ -50,6 +50,7 @@ class Rack::Router
     
   private
     
+    # TODO: Handle escaped characters (parenthesis, colon, etc..)
     def parse_segments_with_optionals(pattern, nest_level = 0)
       segments = []
 
@@ -83,7 +84,7 @@ class Rack::Router
 
       while match = (path.match(SEGMENT_REGEXP))
         segments << match.pre_match unless match.pre_match.empty?
-        segments << match[2].intern
+        segments << match[2].to_sym
         path = match.post_match
       end
 
@@ -115,7 +116,7 @@ class Rack::Router
         
         captures.each do |capture|
           offsets[capture] = counter
-          counter += 1 + regexp_arity(@conditions[capture])
+          counter += (1 + regexp_arity(@conditions[capture]))
         end
         
         offsets
@@ -151,6 +152,7 @@ class Rack::Router
       end
     end
     
+    # Returns the number of captures for a given regular expression
     def regexp_arity(regexp)
       return 0 unless regexp.is_a?(Regexp)
       regexp.source.scan(/(?!\\)[(](?!\?[#=:!>-imx])/).length
@@ -174,8 +176,6 @@ class Rack::Router
   
     # The URI spec states that sequential slashes is equivalent to a
     # single slash and that trailing slashes can be ignored.
-    #
-    # TODO: A thought occurs, right now, I am normalizing every condition
     def normalize(pattern)
       pattern.gsub(%r'/+', '/').sub(%r'/+$', '')
     end

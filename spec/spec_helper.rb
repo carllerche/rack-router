@@ -41,7 +41,7 @@ module Spec
         
         if @target[0] == 200
           @resp = YAML.load(@target[2])
-          @app.to_s == @resp['app'] && @expected == @resp['rack.routing_args']
+          @app.to_s == @resp['app'] && @expected == @resp['rack_router.params']
         end
       end
       
@@ -74,7 +74,7 @@ Object.instance_eval do
         class ::#{name}
           def self.call(env)
             resp = {}
-            resp['rack.routing_args'] = env['rack.routing_args']
+            resp['rack_router.params'] = env['rack_router.params']
             resp['app'] = '#{name}'
             
             [ 200, { "Content-Type" => 'text/yaml' }, YAML.dump(resp) ]

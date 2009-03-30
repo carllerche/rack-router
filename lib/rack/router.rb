@@ -20,8 +20,7 @@ module Rack
     end
     
     def call(env)
-      route, params, response = handle(env)
-      response || @app.call(env)
+      super
     end
     
     def fallback

@@ -16,15 +16,16 @@ class Rack::Router
       self
     end
     
-    def handle(env, path_prefix = "")
-      request  = Rack::Request.new(env)
+    def call(env)
+      path_prefix = env["rack_router.path_prefix"] || ""
+      request     = Rack::Request.new(env)
       
       for route in routes
-        route, params, response = route.handle(request, path_prefix)
-        return route, params, response if route
+        response = route.handle(request, path_prefix)
+        return response if response && response[0] != 404
       end
       
-      return nil, {}, nil
+      fallback.call(env)
     end
     
     def url(name, params = {})
@@ -60,7 +61,7 @@ class Rack::Router
     end
     
     def children
-      @routes.map { |r| r.app if r.mount_point? }.compact.uniq
+      @routes.map { |r| r.app if r.mount_point? }.compact
     end
     
     def end_points

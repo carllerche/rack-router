@@ -22,11 +22,18 @@ class Rack::Router
       
       for route in routes
         response = route.handle(request, path_prefix)
-        return response if response && response[0] != 404
+        return response if response && handled?(response)
       end
       
-      fallback.call(env)
+      NOT_FOUND_RESPONSE
     end
+    
+    private
+    def handled?(response)
+      response[1][STATUS_HEADER] != NOT_FOUND_RESPONSE
+    end
+    
+    public
     
     def url(name, params = {})
       route = _named_routes[name]

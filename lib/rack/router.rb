@@ -5,6 +5,10 @@ module Rack
     
     class MountError < StandardError ; end
     
+    STATUS_HEADER      = "X-Rack-Router-Status"
+    NOT_FOUND          = "404 Not Found"
+    NOT_FOUND_RESPONSE = [ 404, { STATUS_HEADER => NOT_FOUND }, NOT_FOUND ]
+    
     autoload :Routable,      'rack/router/routable'
     autoload :Route,         'rack/router/route'
     autoload :Condition,     'rack/router/condition'
@@ -20,7 +24,9 @@ module Rack
     end
     
     def call(env)
-      super
+      resp = super
+      
+      handled?(resp) ? resp : fallback.call(env)
     end
     
     def fallback

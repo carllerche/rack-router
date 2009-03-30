@@ -17,11 +17,12 @@ class Rack::Router
     end
     
     def call(env)
-      path_prefix = env["rack_router.path_prefix"] || ""
-      request     = Rack::Request.new(env)
+      env["rack_router.path_info"] ||= env["PATH_INFO"]
+      
+      request = Rack::Request.new(env)
       
       for route in routes
-        response = route.handle(request, path_prefix)
+        response = route.handle(request, env)
         return response if response && handled?(response)
       end
       

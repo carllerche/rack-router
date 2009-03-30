@@ -2,10 +2,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "When recognizing requests" do
   
-  before(:each) do
-    pending
-  end
-  
   it "can mount a child router" do
     prepare do |r|
       r.map :to => router { |c| c.map "/hello", :to => ChildApp }

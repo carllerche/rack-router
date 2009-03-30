@@ -2,10 +2,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "When generating URLs" do
   
-  before(:each) do
-    pending
-  end
-  
   describe "a mounted router with no mount point conditions" do
     
     it "allows generating child routes from the parent router" do

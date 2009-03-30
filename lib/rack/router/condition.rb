@@ -8,10 +8,11 @@ class Rack::Router
     
     attr_reader :segments, :captures
     
-    def initialize(pattern, conditions = {})
-      @segments   = {}
-      @captures   = {}
-      @conditions = conditions
+    def initialize(method_name, pattern, conditions = {}, anchored = true)
+      @method_name = method_name
+      @segments    = {}
+      @captures    = {}
+      @conditions  = conditions
       
       @conditions.default = /#{SEGMENT_CHARACTERS}+/
       
@@ -19,23 +20,21 @@ class Rack::Router
       when String
         @segments = parse_segments_with_optionals(pattern.dup)
         @compiled = compile(@segments)
-        @pattern  = Regexp.new("^#{@compiled}$")
+        @pattern  = Regexp.new("^#{@compiled}#{'$' if anchored}")
         @captures = @segments.flatten.select { |s| s.is_a?(Symbol) }
       else
         @pattern = convert_to_regexp(pattern)
       end
     end
     
-    def pattern(prefix = nil)
-      @pattern
+    def match_value(request)
+      request.send(@method_name)
     end
     
-    def match(value, prefix = nil)
-      if data = pattern(prefix).match(value)
-        captures = {}
-        offsets.each do |capture, offset|
-          captures[capture] = data[offset] if data[offset]
-        end
+    def match(request)
+      if data = @pattern.match(match_value(request))
+        captures = extract_captures(data)
+        yield data if block_given?
         captures
       end
     end
@@ -109,6 +108,14 @@ class Rack::Router
       compiled.join
     end
     
+    def extract_captures(data)
+      captures = {}
+      offsets.each do |capture, offset|
+        captures[capture] = data[offset] if data[offset]
+      end
+      captures
+    end
+    
     def offsets
       @offsets ||= begin
         offsets = {}
@@ -162,13 +169,17 @@ class Rack::Router
 
   class PathCondition < Condition
     
-    def pattern(prefix = nil)
-      return @pattern unless prefix
-      normalized = normalize("#{Regexp.escape(prefix)}#{@compiled}")
-      Regexp.new("^#{normalized}$")
+    def match(request)
+      super do |data|
+        request.env["rack_router.path_info"] = data.post_match
+      end
     end
     
   private
+  
+    def match_value(request)
+      request.env["rack_router.path_info"]
+    end  
   
     def compile(segments)
       normalize(super)

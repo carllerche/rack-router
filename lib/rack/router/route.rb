@@ -10,11 +10,9 @@ class Rack::Router
       @segment_conditions = segment_conditions
       @params             = params
       
-      # TODO: Temporary hack to get simple path prefixing working
       if mount_point?
         raise MountError, "#{@app} has already been mounted" if @app.mounted?
         @app.mount_point = self
-        @path_prefix  = request_conditions[:path_info].to_s
       end
       
       raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
@@ -25,8 +23,8 @@ class Rack::Router
       
       @request_conditions.each do |method_name, pattern|
         @request_conditions[method_name] = method_name == :path_info ?
-          PathCondition.new(pattern, segment_conditions) :
-          Condition.new(pattern, segment_conditions)
+          PathCondition.new(:path_info, pattern, segment_conditions, !mount_point?) :
+          Condition.new(method_name, pattern, segment_conditions)
       end
       
       freeze
@@ -44,21 +42,21 @@ class Rack::Router
     
     # Handles the given request. If the route matches the request, it will
     # dispatch to the associated rack application.
-    #
-    # TODO: Try to refactor this so that there is less duplication
-    def handle(request, path_prefix)
+    def handle(request, env)
       params = @params.dup
-      env    = request.env
+      parent_path_info = env["rack_router.path_info"]
       
       return unless request_conditions.all? do |method_name, condition|
         next true unless request.respond_to?(method_name)
-        captures = condition.match(request.send(method_name))
-        captures && params.merge!(captures)
+        (captures = condition.match(request)) && params.merge!(captures)
       end
       
-      env.merge! "rack_router.route" => self, "rack_router.params" => params
+      env["rack_router.router"] = self
+      env["rack_router.params"] = params
       
       @app.call(env)
+    ensure
+      env["rack_router.path_info"] = parent_path_info
     end
     
     # Generates a URI from the route given the passed parameters

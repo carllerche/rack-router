@@ -10,6 +10,7 @@ class Rack::Router
       @segment_conditions = segment_conditions
       @params             = params
       
+      # For route generation only
       if mount_point?
         raise MountError, "#{@app} has already been mounted" if @app.mounted?
         @app.mount_point = self
@@ -22,9 +23,8 @@ class Rack::Router
       @router = router
       
       @request_conditions.each do |method_name, pattern|
-        @request_conditions[method_name] = method_name == :path_info ?
-          PathCondition.new(:path_info, pattern, segment_conditions, !mount_point?) :
-          Condition.new(method_name, pattern, segment_conditions)
+        @request_conditions[method_name] = 
+          Condition.build(method_name, pattern, segment_conditions, !mount_point?)
       end
       
       freeze
@@ -63,11 +63,21 @@ class Rack::Router
     # ====
     def generate(params)
       query_params = params.dup
+      
       # Condition#generate will delete from the hash any params that it uses
       # that way, we can just append whatever is left to the query string
-      uri  = @request_conditions[:path_info].generate(query_params)
+      uri = generate_path(query_params)
       uri << "?#{Rack::Utils.build_query(query_params)}" if query_params.any?
       uri
+    end
+    
+  protected
+  
+    def generate_path(params)
+      path = ""
+      path << router.mount_point.generate_path(params) if router.mounted?
+      path << @request_conditions[:path_info].generate(params) if @request_conditions[:path_info]
+      path
     end
     
   end

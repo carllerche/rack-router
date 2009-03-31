@@ -2,6 +2,48 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 
 describe "When generating URLs" do
   
+  describe "a child router mounted with no conditions" do
+    
+    before(:each) do
+      @child  = router { |r| r.map "/child", :to => ChildApp, :name => :child }
+      @parent = router { |r| r.map :to => @child, :name => :child }
+    end
+    
+    it "generates URLs when mounted in a parent" do
+      @child.url(:child).should == "/child"
+    end
+    
+    it "provides the child router from the parent" do
+      @parent.child.url(:child).should == "/child"
+    end
+    
+    it "raises an exception when trying to generate the child routes from the parent" do
+      lambda { @parent.url(:child) }.should raise_error(ArgumentError)
+    end
+    
+  end
+  
+  describe "a child router mounted at a path location" do
+    
+    before(:each) do
+      @child  = router { |r| r.map "/child", :to => ChildApp, :name => :child }
+      @parent = router { |r| r.map "/kidz", :to => @child, :name => :child }
+    end
+    
+    it "generates URLs in context of the mount point" do
+      @child.url(:child).should == "/kidz/child"
+    end
+    
+  end
+  
+end
+
+describe "FAK" do
+
+  before(:each) do
+    pending
+  end
+  
   describe "a mounted router with no mount point conditions" do
     
     it "allows generating child routes from the parent router" do
@@ -32,16 +74,6 @@ describe "When generating URLs" do
       parent.url(:kidz_child).should == "/child"
       child.url(:child).should == "/child"
       lambda { child.url(:kidz_child) }.should raise_error(ArgumentError)
-    end
-
-    it "raises an exception if a single rack app gets mounted twice" do
-      lambda {
-        child = router { |c| c.map "/child", :to => ChildApp, :name => :child }
-        prepare do |r|
-          r.map "/first",  :to => child
-          r.map "/second", :to => child
-        end
-      }.should raise_error
     end
     
   end

@@ -2,15 +2,21 @@ class Rack::Router
   module Routable
     
     attr_accessor :mount_point
+    attr_reader :routes, :named_routes
     
     def prepare(options = {}, &block)
       builder = options.delete(:builder) || Builder::Simple
       @routes = builder.run(options, &block)
       @named_routes = {}
+      @mounted_apps = {}
       
       @routes.each do |route|
         route.compile(self)
-        @named_routes[route.name] = route if route.name
+        if route.name
+          route.mount_point? ?
+            @mounted_apps[route.name] = route.app :
+            @named_routes[route.name] = route
+        end
       end
       
       self
@@ -29,63 +35,29 @@ class Rack::Router
       NOT_FOUND_RESPONSE
     end
     
-    private
-    def handled?(response)
-      response[1][STATUS_HEADER] != NOT_FOUND_RESPONSE
-    end
-    
-    public
-    
     def url(name, params = {})
-      route = _named_routes[name]
-      
-      # Search up the router chain
-      unless route
-        router = self
-        while !route && (router = router.parent)
-          route = router._named_routes[name]
-        end
-      end
+      route = named_routes[name]
       
       raise ArgumentError, "Cannot find route named '#{name}'" unless route
       
       route.generate(params)
     end
     
-    def routes
-      @routes ||= []
-    end
-    
-    def named_routes
-      @named_routes ||= {}
-    end
-    
     def mounted?
       mount_point
     end
     
-    def parent
-      mounted? && mount_point.router
-    end
-    
-    def children
-      @routes.map { |r| r.app if r.mount_point? }.compact
-    end
-    
-    def end_points
-      @end_points ||= @routes.map { |r| r.app unless r.mount_point? }.compact.uniq
-    end
-    
-  protected
+  private
   
-    def _named_routes
-      @_named_routes ||= begin
-        _named_routes = {}
-        children.reverse.each do |c|
-          _named_routes.merge! c._named_routes
-        end
-        _named_routes.merge! @named_routes
-      end
+    def handled?(response)
+      response[1][STATUS_HEADER] != NOT_FOUND_RESPONSE
+    end
+    
+    # TODO: A thought occurs... method_missing is slow.
+    # ---
+    # Yeah, optimizations can come later. kthxbai
+    def method_missing(name, *args)
+      @mounted_apps[name] || super
     end
     
   end

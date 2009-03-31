@@ -186,14 +186,15 @@ class Rack::Router
         
     def match(request)
       super do |data|
-        request.env["rack_router.path_info"] = data.post_match
+        request.env["PATH_INFO"]   = normalize(data.post_match)
+        request.env["SCRIPT_NAME"] = normalize(request.env["SCRIPT_NAME"] + data[0])
       end
     end
     
   private
   
     def match_value(request)
-      request.env["rack_router.path_info"]
+      request.env["PATH_INFO"]
     end  
   
     def compile(segments)
@@ -203,7 +204,8 @@ class Rack::Router
     # The URI spec states that sequential slashes is equivalent to a
     # single slash and that trailing slashes can be ignored.
     def normalize(pattern)
-      pattern.gsub(%r'/+', '/').sub(%r'/+$', '')
+      pattern = "/#{pattern}".gsub(%r'/+', '/').sub(%r'/+$', '')
+      pattern.empty? ? "/" : pattern
     end
   end
 end

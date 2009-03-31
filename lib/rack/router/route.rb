@@ -4,11 +4,12 @@ class Rack::Router
     attr_reader   :app, :request_conditions, :segment_conditions, :params, :router
     attr_accessor :name
     
-    def initialize(app, request_conditions, segment_conditions, params)
+    def initialize(app, request_conditions, segment_conditions, params, mount_point = true)
       @app                = app
       @request_conditions = request_conditions
       @segment_conditions = segment_conditions
       @params             = params
+      @mount_point        = mount_point
       
       # For route generation only
       if mount_point?
@@ -37,14 +38,14 @@ class Rack::Router
     # Determines whether or not the current route is a mount point to a child
     # router.
     def mount_point?
-      @app.is_a?(Routable)
+      @app.is_a?(Routable) || @mount_point
     end
     
     # Handles the given request. If the route matches the request, it will
     # dispatch to the associated rack application.
     def handle(request, env)
       params = @params.dup
-      parent_path_info = env["rack_router.path_info"]
+      path_info, script_name = env["PATH_INFO"], env["SCRIPT_NAME"]
       
       return unless request_conditions.all? do |method_name, condition|
         next true unless request.respond_to?(method_name)
@@ -56,7 +57,7 @@ class Rack::Router
       
       @app.call(env)
     ensure
-      env["rack_router.path_info"] = parent_path_info
+      env["PATH_INFO"], env["SCRIPT_NAME"] = path_info, script_name
     end
     
     # Generates a URI from the route given the passed parameters

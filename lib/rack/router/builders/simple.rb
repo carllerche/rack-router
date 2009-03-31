@@ -27,7 +27,7 @@ class Rack::Router::Builder
       conditions[:path_info]      = path if path
       conditions[:request_method] = upcase_method(method) if method
       
-      route = Rack::Router::Route.new(options[:to], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {})
+      route = Rack::Router::Route.new(options[:to], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {}, options[:anchor])
       route.name = options[:name].to_sym if options[:name]
       
       @routes << route

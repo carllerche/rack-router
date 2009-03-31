@@ -23,8 +23,6 @@ class Rack::Router
     end
     
     def call(env)
-      env["rack_router.path_info"] ||= env["PATH_INFO"]
-      
       request = Rack::Request.new(env)
       
       for route in routes
@@ -50,7 +48,7 @@ class Rack::Router
   private
   
     def handled?(response)
-      response[1][STATUS_HEADER] != NOT_FOUND_RESPONSE
+      response[1][STATUS_HEADER] != NOT_FOUND
     end
     
     # TODO: A thought occurs... method_missing is slow.

@@ -28,7 +28,7 @@ class Rack::Router
       when String
         @segments = parse_segments_with_optionals(pattern.dup)
         @pattern  = Regexp.new(anchor(compile(@segments)))
-        @captures = @segments.flatten.select { |s| s.is_a?(Symbol) }
+        @captures = captures_for(@segments)
       else
         @pattern = convert_to_regexp(pattern)
       end
@@ -117,6 +117,10 @@ class Rack::Router
       compiled.join
     end
     
+    def captures_for(segments)
+      segments.flatten.select { |s| s.is_a?(Symbol) }
+    end
+    
     def anchor(pattern)
       pattern
     end
@@ -143,9 +147,11 @@ class Rack::Router
       end
     end
 
-    def generate_from_segments(segments, params, defaults, generate_if_string_segment = true)
+    def generate_from_segments(segments, params, defaults, optional = false)
       # We don't want to generate all string optional segments
-      return "" unless generate_if_string_segment || segments.any? { |s| !s.is_a?(String) }
+      return "" if optional && segments.all? { |s| s.is_a?(String) }
+      # We don't want to generate optional segments unless they are requested
+      return "" if optional && captures_for(segments).all? { |s| !params[s] }
       
       generated = segments.map do |segment|
         case segment
@@ -156,7 +162,7 @@ class Rack::Router
           return unless value.to_s =~ convert_to_regexp(@conditions[segment])
           value
         when Array
-          generate_from_segments(segment, params, defaults, false) || ""
+          generate_from_segments(segment, params, defaults, true) || ""
         end
       end
 

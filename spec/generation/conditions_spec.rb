@@ -51,10 +51,8 @@ describe "When generating URLs" do
       end
       
       @app.url(:anchored, :account => "abc").should == "/abc"
-      pending do
-        lambda { @app.url(:anchored, :account => "123abc") }.should raise_error(ArgumentError)
-        lambda { @app.url(:anchored, :account => "abc123") }.should raise_error(ArgumentError)
-      end
+      lambda { @app.url(:anchored, :account => "123abc") }.should raise_error(ArgumentError)
+      lambda { @app.url(:anchored, :account => "abc123") }.should raise_error(ArgumentError)
     end
     
     it "works with Regexp conditions that contain capturing parentheses" do

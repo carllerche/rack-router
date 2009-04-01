@@ -159,7 +159,7 @@ class Rack::Router
           segment
         when Symbol
           return unless value = params[segment] || defaults[segment]
-          return unless value.to_s =~ convert_to_regexp(@conditions[segment])
+          return unless value.to_s =~ convert_to_regexp(@conditions[segment], true)
           value
         when Array
           generate_from_segments(segment, params, defaults, true) || ""
@@ -174,10 +174,10 @@ class Rack::Router
 
     # ==== UTILITIES ====
 
-    def convert_to_regexp(item)
+    def convert_to_regexp(item, anchor = false)
       case item
-      when Array  then Regexp.new("^(?:#{item.map { |i| convert_to_regexp(i) }.join("|")})$")
-      when Regexp then item
+      when Array  then Regexp.new("^(?:#{item.map { |i| convert_to_regexp(i, false) }.join("|")})$")
+      when Regexp then anchor ? /^#{item}$/ : item
       else Regexp.new("^#{Regexp.escape(item.to_s)}$")
       end
     end

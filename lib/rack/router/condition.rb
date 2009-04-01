@@ -42,9 +42,9 @@ class Rack::Router
       end
     end
 
-    def generate(params)
+    def generate(params, defaults = {})
       raise "Condition cannot be generated" unless @segments
-      generate_from_segments(@segments, params) or raise ArgumentError, "Condition cannot be generated with #{params.inspect}"
+      generate_from_segments(@segments, params, defaults) or raise ArgumentError, "Condition cannot be generated with #{params.inspect}"
     end
 
     def inspect
@@ -143,7 +143,8 @@ class Rack::Router
       end
     end
 
-    def generate_from_segments(segments, params, generate_if_string_segment = true)
+    def generate_from_segments(segments, params, defaults, generate_if_string_segment = true)
+      # We don't want to generate all string optional segments
       return "" unless generate_if_string_segment || segments.any? { |s| !s.is_a?(String) }
       
       generated = segments.map do |segment|
@@ -151,10 +152,11 @@ class Rack::Router
         when String
           segment
         when Symbol
-          return unless params[segment] && params[segment].to_s =~ convert_to_regexp(@conditions[segment])
-          params[segment]
+          return unless value = params[segment] || defaults[segment]
+          return unless value.to_s =~ convert_to_regexp(@conditions[segment])
+          value
         when Array
-          generate_from_segments(segment, params, false) || ""
+          generate_from_segments(segment, params, defaults, false) || ""
         end
       end
 

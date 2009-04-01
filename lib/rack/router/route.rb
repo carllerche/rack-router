@@ -78,7 +78,7 @@ class Rack::Router
     def generate_path(params)
       path = ""
       path << router.mount_point.generate_path(params) if router.mounted?
-      path << @request_conditions[:path_info].generate(params) if @request_conditions[:path_info]
+      path << @request_conditions[:path_info].generate(params, @params) if @request_conditions[:path_info]
       path
     end
     

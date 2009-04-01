@@ -1,5 +1,4 @@
 class Rack::Router
-  
   SEGMENT_REGEXP         = /(:([a-z](_?[a-z0-9])*))/
   OPTIONAL_SEGMENT_REGEX = /^.*?([\(\)])/i
   SEGMENT_CHARACTERS     = "[^\/.,;?]".freeze

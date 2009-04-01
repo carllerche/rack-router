@@ -125,4 +125,42 @@ describe "When recognizing requests" do
     
   end
   
+  describe "a route with a glob variable condition" do
+    
+    it "swallows the remaining of the value when using a glob variable" do
+      prepare do |r|
+        r.map "/*glob", :to => FooApp
+      end
+      
+      route_for("/").should have_route(FooApp, :glob => "")
+      route_for("/hello").should have_route(FooApp, :glob => "hello")
+      route_for("/hello/world").should have_route(FooApp, :glob => "hello/world")
+      route_for("/hello;world").should have_route(FooApp, :glob => "hello;world")
+    end
+    
+    it "handles placing a glob at the beginning of the path" do
+      prepare do |r|
+        r.map "/*glob/fail"
+      end
+      
+      route_for("/").should be_missing
+      route_for("/fail").should be_missing
+      route_for("/no/fail").should have_route(FooApp, :glob => "no")
+      route_for("/i/can/not/haz/fail").should have_route(FooApp, :glob => "i/can/not/haz")
+    end
+    
+    it "handles placing a glob in the middle of the path and a capture after" do
+      prepare do |r|
+        r.map "/hi/*glob/:end", :to => FooApp
+      end
+      
+      route_for("/").should be_missing
+      route_for("/hi").should be_missing
+      route_for("/hi/world").should be_missing
+      route_for("/hi/bye/world").should have_route(FooApp, :glob => "bye", :end => "world")
+      route_for("/hi/bye/hi/world").should have_route(FooApp, :glob => "bye/hi", :end => "world")
+    end
+    
+  end
+  
 end

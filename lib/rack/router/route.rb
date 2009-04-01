@@ -25,7 +25,8 @@ class Rack::Router
       
       @request_conditions.each do |method_name, pattern|
         @request_conditions[method_name] = 
-          Condition.build(method_name, pattern, segment_conditions, !mount_point?)
+          # TODO: Refactor this ugliness
+          Condition.build(method_name, pattern, segment_conditions, !(mount_point? || @mount_point))
       end
       
       freeze
@@ -38,7 +39,7 @@ class Rack::Router
     # Determines whether or not the current route is a mount point to a child
     # router.
     def mount_point?
-      @app.is_a?(Routable) || @mount_point
+      @app.is_a?(Routable)
     end
     
     # Handles the given request. If the route matches the request, it will

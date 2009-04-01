@@ -17,7 +17,7 @@ describe "When recognizing requests" do
   describe "a single optional segment" do
     before(:each) do
       prepare do |r|
-        r.map "/:first(/:second/:third)", :to => FooApp
+        r.map "/:first(/:second/:third)", :to => FooApp, :anchor => true
       end
     end
     
@@ -27,12 +27,30 @@ describe "When recognizing requests" do
       route_for("/hello/world").should be_missing
     end
     
+    it "matches the route if it is not anchored, but does not populate the optional parameters" do
+      prepare do |r|
+        r.map "/:first(/:second/:third)", :to => FooApp
+      end
+      
+      route_for("/hello/world").should have_route(FooApp, :first => "hello")
+      route_for("/hello/world").should have_env("PATH_INFO" => "/world")
+    end
+    
     it "does not match the optional segment if the optional segment is present but doesn't match a named segment condition" do
+      prepare do |r|
+        r.map "/:first(/:second)", :to => FooApp, :conditions => { :second => /\d+/ }, :anchor => true
+      end
+      
+      route_for("/hello/world").should be_missing
+    end
+    
+    it "matches the route if not optional but does not populate the optional segment since it does not satisfy the conditions" do
       prepare do |r|
         r.map "/:first(/:second)", :to => FooApp, :conditions => { :second => /\d+/ }
       end
       
-      route_for("/hello/world").should be_missing
+      route_for("/hello/world").should have_route(FooApp, :first => "hello")
+      route_for("/hello/world").should have_env("PATH_INFO" => "/world")
     end
     
     it "does not match if the optional segment is present but not the required segment" do
@@ -107,10 +125,19 @@ describe "When recognizing requests" do
     
     it "does not match the nested optional group unless the containing optional group matches" do
       prepare do |r|
-        r.map "/:first(/:second(/:third))", :to => FooApp, :conditions => { :second => /\d+/ }
+        r.map "/:first(/:second(/:third))", :to => FooApp, :conditions => { :second => /\d+/ }, :anchor => true
       end
       
       route_for("/hello/world").should be_missing
+    end
+    
+    it "matches the route when not anchored but does not populate any optional segments if the middle one does not satisfy the conditions" do
+      prepare do |r|
+        r.map "/:first(/:second(/:third))", :to => FooApp, :conditions => { :second => /\d+/ }
+      end
+      
+      route_for("/hello/world").should have_route(FooApp, :first => "hello")
+      route_for("/hello/world").should have_env("PATH_INFO" => "/world")
     end
   end
   

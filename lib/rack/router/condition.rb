@@ -1,7 +1,7 @@
 class Rack::Router
-  SEGMENT_REGEXP         = /(:([a-z](_?[a-z0-9])*))/
-  OPTIONAL_SEGMENT_REGEX = /^.*?([\(\)])/i
-  SEGMENT_CHARACTERS     = "[^\/.,;?]".freeze
+  SEGMENT_REGEXP          = /(?:(:|\*)([a-z](?:_?[a-z0-9])*))/
+  OPTIONAL_SEGMENT_REGEXP = /^.*?([\(\)])/i
+  SEGMENT_CHARACTERS      = "[^\/.,;?]".freeze
   
   class Condition
     def self.register(type)
@@ -19,27 +19,23 @@ class Rack::Router
       @method_name = method_name
       @segments    = {}
       @captures    = {}
-      @conditions  = conditions
+      @conditions  = conditions.dup
+      @anchored    = anchored
 
       @conditions.default = /#{SEGMENT_CHARACTERS}+/
 
       case pattern
       when String
         @segments = parse_segments_with_optionals(pattern.dup)
-        @compiled = compile(@segments)
-        @pattern  = Regexp.new("^#{@compiled}#{'$' if anchored}")
+        @pattern  = Regexp.new(anchor(compile(@segments)))
         @captures = @segments.flatten.select { |s| s.is_a?(Symbol) }
       else
         @pattern = convert_to_regexp(pattern)
       end
     end
 
-    def match_value(request)
-      request.send(@method_name)
-    end
-
     def match(request)
-      if data = @pattern.match(match_value(request))
+      if data = @pattern.match(request.send(@method_name))
         captures = extract_captures(data)
         yield data if block_given?
         captures
@@ -47,6 +43,7 @@ class Rack::Router
     end
 
     def generate(params)
+      raise "Condition cannot be generated" unless @segments
       generate_from_segments(@segments, params) or raise ArgumentError, "Condition cannot be generated with #{params.inspect}"
     end
 
@@ -61,7 +58,7 @@ class Rack::Router
       segments = []
 
       # Extract all the segments at this parenthesis level
-      while segment = pattern.slice!(OPTIONAL_SEGMENT_REGEX)
+      while segment = pattern.slice!(OPTIONAL_SEGMENT_REGEXP)
         # Append the segments that we came across so far
         # at this level
         segments.concat parse_segments(segment[0..-2]) if segment.length > 1
@@ -89,8 +86,13 @@ class Rack::Router
       segments = []
 
       while match = (path.match(SEGMENT_REGEXP))
+        segment_name = match[2].to_sym
+        
         segments << match.pre_match unless match.pre_match.empty?
-        segments << match[2].to_sym
+        segments << segment_name
+        
+        @conditions[segment_name] = /.+/ if match[1] == '*'
+        
         path = match.post_match
       end
 
@@ -113,6 +115,10 @@ class Rack::Router
       end
 
       compiled.join
+    end
+    
+    def anchor(pattern)
+      pattern
     end
 
     def extract_captures(data)
@@ -137,7 +143,9 @@ class Rack::Router
       end
     end
 
-    def generate_from_segments(segments, params)
+    def generate_from_segments(segments, params, generate_if_string_segment = true)
+      return "" unless generate_if_string_segment || segments.any? { |s| !s.is_a?(String) }
+      
       generated = segments.map do |segment|
         case segment
         when String
@@ -146,7 +154,7 @@ class Rack::Router
           return unless params[segment] && params[segment].to_s =~ convert_to_regexp(@conditions[segment])
           params[segment]
         when Array
-          generate_from_segments(segment, params) || ""
+          generate_from_segments(segment, params, false) || ""
         end
       end
 
@@ -177,6 +185,12 @@ class Rack::Router
     def initialize(method_name, pattern, conditions, *)
       super(method_name, pattern, conditions, true)
     end
+    
+  private
+  
+    def anchor(pattern)
+      "^#{super}$"
+    end
   end
 
   class PathCondition < Condition
@@ -191,20 +205,16 @@ class Rack::Router
     end
     
   private
-  
-    def match_value(request)
-      request.env["PATH_INFO"]
-    end  
-  
-    def compile(segments)
-      normalize(super)
+    
+    def anchor(pattern)
+      pattern = "^#{normalize(super)}"
+      @anchored ? "^#{pattern}$" : pattern.sub(%r'^(.*?)/*$', '^\1(?:/|$)')
     end
   
     # The URI spec states that sequential slashes is equivalent to a
     # single slash and that trailing slashes can be ignored.
     def normalize(pattern)
-      pattern = "/#{pattern}".gsub(%r'/+', '/').sub(%r'/+$', '')
-      pattern.empty? ? "/" : pattern
+      "/#{pattern}".squeeze("/").sub(%r'/(.*?)/+$', '/\1')
     end
   end
 end

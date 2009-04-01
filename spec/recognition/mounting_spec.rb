@@ -43,4 +43,12 @@ describe "When recognizing requests" do
     route_for("/world").should be_missing
   end
   
+  it "passes on captures from the mount point to the child router" do
+    prepare do |r|
+      r.map "/:account", :to => router { |c| c.map "/woahbot", :to => FooApp }
+    end
+    
+    route_for("/awesome/woahbot").should have_route(FooApp, :account => "awesome")
+  end
+  
 end

@@ -132,7 +132,7 @@ describe "When recognizing requests" do
         r.map "/*glob", :to => FooApp
       end
       
-      route_for("/").should have_route(FooApp, :glob => "")
+      route_for("/").should be_missing
       route_for("/hello").should have_route(FooApp, :glob => "hello")
       route_for("/hello/world").should have_route(FooApp, :glob => "hello/world")
       route_for("/hello;world").should have_route(FooApp, :glob => "hello;world")
@@ -140,7 +140,7 @@ describe "When recognizing requests" do
     
     it "handles placing a glob at the beginning of the path" do
       prepare do |r|
-        r.map "/*glob/fail"
+        r.map "/*glob/fail", :to => FooApp
       end
       
       route_for("/").should be_missing

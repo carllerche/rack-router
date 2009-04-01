@@ -131,5 +131,5 @@ describe "When recognizing requests" do
       end
     end
   end
-  
+
 end

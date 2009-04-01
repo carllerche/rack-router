@@ -54,7 +54,7 @@ class Rack::Router
       end
       
       env["rack_router.router"] = self
-      env["rack_router.params"] = params
+      env["rack_router.params"].merge! params
       
       @app.call(env)
     ensure

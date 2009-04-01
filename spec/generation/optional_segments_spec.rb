@@ -15,9 +15,7 @@ describe "When generating URLs" do
         r.map "/hello(/world)", :to => FooApp, :name => :optional
       end
 
-      pending do
-        @app.url(:optional).should == "/hello"
-      end
+      @app.url(:optional).should == "/hello"
     end
     
     it "does not add the optional segment when the optional segment is just a string" do
@@ -25,9 +23,7 @@ describe "When generating URLs" do
         r.map "/:greets(/world)", :to => FooApp, :name => :optional
       end
 
-      pending do
-        @app.url(:optional, :greets => "goodbye").should == "/goodbye"
-      end
+      @app.url(:optional, :greets => "goodbye").should == "/goodbye"
     end
 
     it "only generates the route's required segment if it contains no variables" do

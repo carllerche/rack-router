@@ -25,6 +25,8 @@ class Rack::Router
     def call(env)
       request = Rack::Request.new(env)
       
+      env["rack_router.params"] ||= {}
+      
       for route in routes
         response = route.handle(request, env)
         return response if response && handled?(response)

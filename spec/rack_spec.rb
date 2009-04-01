@@ -27,4 +27,12 @@ describe "Rack::Router" do
     route_for("/hello/america").should have_env("PATH_INFO" => "/", "SCRIPT_NAME" => "/hello/america")
   end
   
+  it "leaves the REQUEST_URI env variable as is throughout child routers" do
+    prepare do |r|
+      r.map "/hello", :to => router { |c| c.map "/world", :to => WorldApp }
+    end
+    
+    route_for("/hello/world").should have_env("REQUEST_URI" => "/hello/world")
+  end
+  
 end

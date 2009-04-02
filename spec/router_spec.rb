@@ -70,4 +70,37 @@ describe Rack::Router do
     
   end
   
+  describe "alternate DSLs" do
+    
+    class ::YoDawg
+      
+      attr_reader :routes
+      
+      def self.run(options = {})
+        builder = new
+        yield builder
+        builder.routes
+      end
+      
+      def initialize
+        @routes = []
+      end
+      
+      def put(opts)
+        raise "FAIL!" unless opts[:so_that] == "you can route while you route"
+        @routes << Rack::Router::Route.new(opts[:a], { :path_info => opts[:in_your] }, {}, { :yo_dawg => true }, false)
+      end
+      
+    end
+    
+    it "uses the specified DSL to build the router" do
+      prepare :builder => YoDawg do |i|
+        i.put :a => RouterApp, :in_your => "/router", :so_that => "you can route while you route"
+      end
+      
+      route_for("/router").should have_route(RouterApp, :yo_dawg => true)
+    end
+    
+  end
+  
 end

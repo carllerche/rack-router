@@ -5,10 +5,12 @@ class Rack::Router
     attr_reader :routes, :named_routes
     
     def prepare(options = {}, &block)
-      builder = options.delete(:builder) || Builder::Simple
-      @routes = builder.run(options, &block)
+      builder       = options.delete(:builder) || Builder::Simple
+      @dependencies = options.delete(:dependencies) || {}
+      @root         = self
       @named_routes = {}
       @mounted_apps = {}
+      @routes = builder.run(options, &block)
       
       @routes.each do |route|
         route.compile(self)
@@ -18,6 +20,9 @@ class Rack::Router
             @named_routes[route.name] = route
         end
       end
+      
+      # Set the root of the router tree for each router
+      descendants.each { |d| d.root = self }
       
       self
     end
@@ -45,6 +50,30 @@ class Rack::Router
     
     def mounted?
       mount_point
+    end
+    
+  protected
+  
+    def dependencies
+      @dependencies
+    end
+    
+    def children
+      @children ||= routes.map { |r| r.app if r.mount_point? }.compact
+    end
+    
+    def descendants
+      @descendants ||= [ children, children.map { |c| c.descendants } ].flatten
+    end
+    
+    def root=(router)
+      @dependencies.each do |klass, name|
+        if dependency = router.descendants.detect { |r| r.is_a?(klass) || r == klass }
+          @mounted_apps[name] ||= dependency
+        end
+      end
+      
+      @root = router
     end
     
   private

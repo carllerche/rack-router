@@ -36,4 +36,21 @@ describe "When generating URLs" do
     
   end
   
+  describe "a child router mounted at a path location with a capture" do
+    
+    before(:each) do
+      @child  = router { |r| r.map "/child", :to => ChildApp, :name => :child }
+      @parent = router { |r| r.map "/:account", :to => @child, :name => :child }
+    end
+    
+    it "generates the mounted part of the path as well" do
+      @parent.child.url(:child, :account => "omg").should == "/omg/child"
+    end
+    
+    it "raises an exception if the mounted part of the path cannot be generated with the passed parameters" do
+      lambda { @parent.child.url(:child) }.should raise_error(ArgumentError)
+    end
+    
+  end
+  
 end

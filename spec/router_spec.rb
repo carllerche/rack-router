@@ -35,7 +35,11 @@ describe Rack::Router do
   describe "defining conditions" do
     
     it "raises an exception if a condition has unbalanced parentheses" do
-      pending
+      %w'/hello(/world /hello/world) /hello((/world) /hello(/world)) /hello(/world(/fail) /hello(/world)/fail)'.each do |path|
+        lambda {
+          router { |r| r.map path, :to => FailApp }
+        }.should raise_error(ArgumentError)
+      end
     end
     
   end
@@ -43,19 +47,25 @@ describe Rack::Router do
   describe "escaping special characters in conditions" do
     
     it "allows : to be escaped" do
-      pending
+      prepare { |r| r.map '/hello/\:world', :to => FooApp }
+      route_for('/hello/:world').should have_route(FooApp)
+      route_for('/hello/fail').should be_missing
     end
     
     it "allows * to be escaped" do
-      pending
+      prepare { |r| r.map '/hello/\*world', :to => FooApp }
+      route_for('/hello/*world').should have_route(FooApp)
+      route_for('/hello/fail').should be_missing
     end
     
     it "allows ( to be escaped" do
-      pending
+      prepare { |r| r.map '/hello/\(world', :to => FooApp }
+      route_for('/hello/\(world').should have_route(FooApp)
     end
     
     it "allows ) to be escaped" do
-      pending
+      prepare { |r| r.map '/hello/\)world', :to => FooApp }
+      route_for('/hello/\)world').should have_route(FooApp)
     end
     
   end

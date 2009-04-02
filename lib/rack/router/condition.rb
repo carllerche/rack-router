@@ -1,6 +1,7 @@
 class Rack::Router
   SEGMENT_REGEXP          = /(?:(:|\*)([a-z](?:_?[a-z0-9])*))/
-  OPTIONAL_SEGMENT_REGEXP = /^.*?([\(\)])/i
+  OPTIONAL_SEGMENT_REGEXP = /^(?:|.*?[^\\])(?:\\\\)*([\(\)])/i
+  ESCAPED_REGEXP          = /(?:^|[^\\])\\(?:\\\\)*$/
   SEGMENT_CHARACTERS      = "[^\/.,;?]".freeze
   
   class Condition
@@ -88,10 +89,15 @@ class Rack::Router
       while match = (path.match(SEGMENT_REGEXP))
         segment_name = match[2].to_sym
         
-        segments << match.pre_match unless match.pre_match.empty?
-        segments << segment_name
+        # Handle false-positives due to escaped special characters
+        if match.pre_match =~ ESCAPED_REGEXP
+          segments << "#{match.pre_match[0..-2]}#{match[0]}"
+        else
+          segments << match.pre_match unless match.pre_match.empty?
+          segments << segment_name
         
-        @conditions[segment_name] = /.+/ if match[1] == '*'
+          @conditions[segment_name] = /.+/ if match[1] == '*'
+        end
         
         path = match.post_match
       end
@@ -215,7 +221,7 @@ class Rack::Router
   private
     
     def anchor(pattern)
-      pattern = "^#{normalize(super)}"
+      pattern = normalize(super)
       @anchored ? "^#{pattern}$" : pattern.sub(%r'^(.*?)/*$', '^\1(?:/|$)')
     end
   

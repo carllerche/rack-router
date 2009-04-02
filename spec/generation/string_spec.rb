@@ -71,9 +71,11 @@ describe "When generating URLs" do
     end
     
     it "does not append nil parameters to the query string" do
-      pending "Should this be true?" do
-        @app.url(:foobar, :foo => "omg", :bar => "hi2u", :fiz => nil).should == "/omg/hi2u"
-      end
+      @app.url(:foobar, :foo => "omg", :bar => "hi2u", :fiz => nil).should == "/omg/hi2u"
+    end
+    
+    it "does append empty string parameters to the query string" do
+      @app.url(:foobar, :foo => "omg", :bar => "hi2u", :fiz => "").should == "/omg/hi2u?fiz="
     end
 
     it "raises an error if the first variable is missing" do

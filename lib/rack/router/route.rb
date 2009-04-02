@@ -69,6 +69,9 @@ class Rack::Router
       # Condition#generate will delete from the hash any params that it uses
       # that way, we can just append whatever is left to the query string
       uri = generate_path(query_params)
+      
+      query_params.delete_if { |k, v| v.nil? }
+      
       uri << "?#{Rack::Utils.build_query(query_params)}" if query_params.any?
       uri
     end

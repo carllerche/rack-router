@@ -1,6 +1,6 @@
 class Rack::Router
-  SEGMENT_REGEXP          = /(?:(:|\*)([a-z](?:_?[a-z0-9])*))/
-  OPTIONAL_SEGMENT_REGEXP = /^(?:|.*?[^\\])(?:\\\\)*([\(\)])/i
+  SEGMENT_REGEXP          = /(?:(:|\*)([a-z](?:_?[a-z0-9])*))/i
+  OPTIONAL_SEGMENT_REGEXP = /^(?:|.*?[^\\])(?:\\\\)*([\(\)])/ 
   ESCAPED_REGEXP          = /(?:^|[^\\])\\(?:\\\\)*$/
   SEGMENT_CHARACTERS      = "[^\/.,;?]".freeze
   

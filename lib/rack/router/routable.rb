@@ -1,8 +1,7 @@
 class Rack::Router
   module Routable
     
-    attr_accessor :mount_point
-    attr_reader :routes, :named_routes
+    attr_reader :routes, :named_routes, :mount_point
     
     def prepare(options = {}, &block)
       builder       = options.delete(:builder) || Builder::Simple
@@ -46,6 +45,11 @@ class Rack::Router
       raise ArgumentError, "Cannot find route named '#{name}'" unless route
       
       route.generate(params)
+    end
+
+    def mount_at(mount_point)
+      raise MountError, "#{self} has already been mounted" if mounted?
+      @mount_point = mount_point
     end
     
     def mounted?

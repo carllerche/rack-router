@@ -13,8 +13,7 @@ class Rack::Router
       
       # For route generation only
       if mount_point?
-        raise MountError, "#{@app} has already been mounted" if @app.mounted?
-        @app.mount_point = self
+        @app.mount_at(self)
       end
       
       raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)

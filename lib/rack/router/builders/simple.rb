@@ -39,7 +39,10 @@ class Rack::Router::Builder
       case method
       when String, Symbol then method.to_s.upcase
       when Array          then method.map { |m| upcase_method(m) }
-      else "GET"
+      when NilClass       then "GET"
+      when Regexp         then method
+      else
+        raise ArgumentError, "The method #{method.inspect} could not be coerced into a HTTP method"
       end
     end
     

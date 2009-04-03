@@ -80,6 +80,7 @@ describe "When recognizing requests" do
       end
       
       route_for('/anything', :method => "get").should    have_route(HelloApp)
+      route_for('/anything', :method => "got").should    have_route(HelloApp)
       route_for('/anything', :method => "post").should   have_route(HelloApp)
       route_for('/anything', :method => "put").should    be_missing
       route_for('/anything', :method => "delete").should be_missing

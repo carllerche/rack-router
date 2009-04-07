@@ -154,10 +154,12 @@ class Rack::Router
     end
 
     def generate_from_segments(segments, params, defaults, optional = false)
-      # We don't want to generate all string optional segments
-      return "" if optional && segments.all? { |s| s.is_a?(String) }
-      # We don't want to generate optional segments unless they are requested
-      return "" if optional && captures_for(segments).all? { |s| !params[s] }
+      if optional
+        # We don't want to generate all string optional segments
+        return "" if segments.all? { |s| s.is_a?(String) }
+        # We don't want to generate optional segments unless they are requested
+        return "" if captures_for(segments).all? { |s| params[s].to_s !~ @conditions[s] }
+      end
       
       generated = segments.map do |segment|
         case segment

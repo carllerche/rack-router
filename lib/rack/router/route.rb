@@ -63,12 +63,12 @@ class Rack::Router
     
     # Generates a URI from the route given the passed parameters
     # ====
-    def generate(params)
+    def generate(params, fallback)
       query_params = params.dup
       
       # Condition#generate will delete from the hash any params that it uses
       # that way, we can just append whatever is left to the query string
-      uri = generate_path(query_params)
+      uri = generate_path(query_params, fallback)
       
       query_params.delete_if { |k, v| v.nil? }
       
@@ -78,10 +78,10 @@ class Rack::Router
     
   protected
   
-    def generate_path(params)
+    def generate_path(params, fallback)
       path = ""
-      path << router.mount_point.generate_path(params) if router.mounted?
-      path << @request_conditions[:path_info].generate(params, @params) if @request_conditions[:path_info]
+      path << router.mount_point.generate_path(params, fallback) if router.mounted?
+      path << @request_conditions[:path_info].generate(params, @params.merge(fallback)) if @request_conditions[:path_info]
       path
     end
     

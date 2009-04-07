@@ -39,12 +39,12 @@ class Rack::Router
       NOT_FOUND_RESPONSE
     end
     
-    def url(name, params = {})
+    def url(name, params = {}, fallback = {})
       route = named_routes[name]
       
       raise ArgumentError, "Cannot find route named '#{name}'" unless route
       
-      route.generate(params)
+      route.generate(params, fallback)
     end
 
     def mount_at(mount_point)

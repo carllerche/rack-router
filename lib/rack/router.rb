@@ -14,6 +14,7 @@ module Rack
     autoload :Condition,     'rack/router/condition'
     autoload :PathCondition, 'rack/router/condition'
     autoload :Builder,       'rack/router/builders'
+    autoload :Utils,         'rack/router/utils'
     
     include Routable
     

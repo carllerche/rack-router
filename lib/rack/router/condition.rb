@@ -37,9 +37,7 @@ class Rack::Router
 
     def match(request)
       if data = @pattern.match(request.send(@method_name))
-        captures = extract_captures(data)
-        yield data if block_given?
-        captures
+        return data[0], extract_captures(data)
       end
     end
 
@@ -212,25 +210,12 @@ class Rack::Router
   class PathCondition < Condition
     
     register :path_info
-        
-    def match(request)
-      super do |data|
-        request.env["PATH_INFO"]   = normalize(data.post_match)
-        request.env["SCRIPT_NAME"] = normalize(request.env["SCRIPT_NAME"] + data[0])
-      end
-    end
     
   private
     
     def anchor(pattern)
-      pattern = normalize(super)
+      pattern = Utils.normalize(super)
       @anchored ? "^#{pattern}$" : pattern.sub(%r'^(.*?)/*$', '^\1(?:/|$)')
-    end
-  
-    # The URI spec states that sequential slashes is equivalent to a
-    # single slash and that trailing slashes can be ignored.
-    def normalize(pattern)
-      "/#{pattern}".squeeze("/").sub(%r'/(.*?)/+$', '/\1')
     end
   end
 end

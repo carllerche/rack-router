@@ -1,11 +1,13 @@
 class Rack::Router
   class Route
     
-    attr_reader   :app, :request_conditions, :segment_conditions, :params, :router
+    attr_reader   :app, :path_info, :request_conditions, :segment_conditions, :params, :router
     attr_accessor :name
     
-    def initialize(app, request_conditions, segment_conditions, params, mount_point = true)
+    # TODO: Make path_info able to accept captures as part of the generation
+    def initialize(app, path_info, request_conditions, segment_conditions, params, mount_point = true)
       @app                = app
+      @path_info          = path_info
       @request_conditions = request_conditions
       @segment_conditions = segment_conditions
       @params             = params
@@ -49,11 +51,20 @@ class Rack::Router
       path_info, script_name = env["PATH_INFO"], env["SCRIPT_NAME"]
       
       return unless request_conditions.all? do |method_name, condition|
+        # TODO: This seems a bit sketchy, is there a better way?
         next true unless request.respond_to?(method_name)
-        (captures = condition.match(request)) && params.merge!(captures)
+        matched, captures = condition.match(request)
+        if matched
+          if method_name == :path_info
+            new_path_info = @path_info || env["PATH_INFO"].sub(/^#{Regexp.escape(matched)}/, '')
+            env["SCRIPT_NAME"] = Utils.normalize(request.env["SCRIPT_NAME"] + matched)
+            env["PATH_INFO"]   = Utils.normalize(new_path_info)
+          end
+          params.merge!(captures)
+        end
       end
       
-      env["rack_router.router"] = self
+      env["rack_router.route"] = self
       env["rack_router.params"].merge! params
       
       @app.call(env)

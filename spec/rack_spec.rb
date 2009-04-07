@@ -7,7 +7,7 @@ describe "Rack::Router" do
       r.map "/hello", :to => HelloApp
     end
     
-    route_for("/hello").should have_env("PATH_INFO" => "/", "SCRIPT_NAME" => "/hello")
+    route_for("/hello").should have_env("PATH_INFO" => "", "SCRIPT_NAME" => "/hello")
   end
   
   it "updates PATH_INFO and SCRIPT_NAME correctly in child routers" do
@@ -15,7 +15,7 @@ describe "Rack::Router" do
       r.map "/hello", :to => router { |c| c.map "/world", :to => HelloApp }
     end
     
-    route_for("/hello/world").should have_env("PATH_INFO" => "/", "SCRIPT_NAME" => "/hello/world")
+    route_for("/hello/world").should have_env("PATH_INFO" => "", "SCRIPT_NAME" => "/hello/world")
   end
   
   it "does not let updated PATH_INFO and SCRIPT_NAME bleed across routes" do
@@ -24,7 +24,7 @@ describe "Rack::Router" do
       r.map "/hello", :to => router { |c| c.map "/america", :to => AmericaApp }
     end
     
-    route_for("/hello/america").should have_env("PATH_INFO" => "/", "SCRIPT_NAME" => "/hello/america")
+    route_for("/hello/america").should have_env("PATH_INFO" => "", "SCRIPT_NAME" => "/hello/america")
   end
   
   it "leaves the REQUEST_URI env variable as is throughout child routers" do

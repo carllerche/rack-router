@@ -101,6 +101,7 @@ Object.instance_eval do
       Object.instance_eval %{
         class ::#{name}
           def self.call(env)
+            env.delete("rack_router.route")
             [ 200, { "Content-Type" => 'text/yaml' }, Marshal.dump(env.merge("app" => "#{name}")) ]
           end
         end

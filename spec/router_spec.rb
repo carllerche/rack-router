@@ -88,7 +88,7 @@ describe Rack::Router do
       
       def put(opts)
         raise "FAIL!" unless opts[:so_that] == "you can route while you route"
-        @routes << Rack::Router::Route.new(opts[:a], { :path_info => opts[:in_your] }, {}, { :yo_dawg => true }, false)
+        @routes << Rack::Router::Route.new(opts[:a], nil, { :path_info => opts[:in_your] }, {}, { :yo_dawg => true }, false)
       end
       
     end

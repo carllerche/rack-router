@@ -1,6 +1,11 @@
 This is my awesome rack router.
 Mad props to Josh Peek, a lot (most?) of the concepts come from him.
 
+
+TODO:
+
+* Freeze the route object when it gets compiled
+
 Some points for discussion:
 ---------------------------
 

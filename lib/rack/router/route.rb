@@ -12,6 +12,7 @@ class Rack::Router
       @mount_point        = mount_point
       
       # For route generation only
+      # TODO: Move this into Routable
       if mount_point?
         @app.mount_at(self)
       end

@@ -29,3 +29,11 @@ end
 Rake::GemPackageTask.new(spec) do |package|
   package.gem_spec = spec
 end
+
+desc "Run all examples"
+Spec::Rake::SpecTask.new('spec') do |t|
+  t.spec_files = FileList['spec/**/*.rb']
+  t.spec_opts = ["-c", "-fs"]
+end
+
+task :default => :spec

@@ -4,7 +4,6 @@ class Rack::Router
     attr_reader   :app, :path_info, :request_conditions, :segment_conditions, :params, :router
     attr_accessor :name
     
-    # TODO: Make path_info able to accept captures as part of the generation
     def initialize(app, path_info, request_conditions, segment_conditions, params, mount_point = true)
       @app                = app
       @path_info          = path_info
@@ -31,6 +30,7 @@ class Rack::Router
           Condition.build(method_name, pattern, segment_conditions, !(mount_point? || @mount_point))
       end
       
+      # Once the route is compiled, we don't want to be able to modify it any further.
       freeze
     end
     

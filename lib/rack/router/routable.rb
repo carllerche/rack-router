@@ -1,4 +1,12 @@
 class Rack::Router
+  # Mixin that can be used by any Rack application to provide routing
+  # to any number of child rack applications.
+  #
+  # Features:
+  # ---
+  # * Set conditions on any method provided by the request object
+  # * Rewrite the request before passing it to the child rack application
+  # * Mount any number of child router objects inside a parent.
   module Routable
     
     attr_reader :routes, :named_routes, :mount_point

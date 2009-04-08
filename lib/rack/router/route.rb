@@ -1,9 +1,63 @@
 class Rack::Router
   class Route
     
-    attr_reader   :app, :path_info, :request_conditions, :segment_conditions, :params, :router
+    # The Rack application that the route calls when it is matched.
+    #
+    # :api: public
+    attr_reader :app
+    
+    # The string that env['PATH_INFO'] gets set to before calling the app
+    # when the route is matched.
+    #
+    # ==== Formats
+    # "/simple/path"   The string literal is what env["PATH_INFO"] gets set
+    #                  to.
+    # "/with/:capture" The placeholder gets replaced with the associated value
+    #                  in the captures extracted from the request by the route.
+    # nil              Whatever remains in the current env["PATH_INFO"] after
+    #                  the matched portion has been removed. This could be an
+    #                  empty string.
+    #
+    # :api: public
+    attr_reader :path_info
+    
+    # A Hash containing the conditions that are used to match the route against
+    # the request. The keys are the request method names, the values are the
+    # conditions.
+    #
+    # :api: public
+    attr_reader :request_conditions
+    
+    
+    # A Hash containing conditions to use for each dynamic segment.
+    #
+    # :api: public
+    attr_reader :segment_conditions
+    
+    # A Hash containing default rack_router.params to use when the route
+    # is matched. Any parameter extracted from the request takes
+    # precedence over the ones specified here.
+    #
+    # :api: public
+    attr_reader :params
+    
+    # The Routable object that owns this route.
+    #
+    # :api: public
+    attr_reader :router
+    
+    # Symbol representing the name of the route. This name can be used
+    # to look up the route.
+    #
+    # :api: public
     attr_accessor :name
     
+    # Initializes a new route. This should only be used by the Builder classes.
+    #
+    # ==== Parameters
+    #
+    #
+    # :api: plugin
     def initialize(app, path_info, request_conditions, segment_conditions, params, mount_point = true)
       @app                = app
       @path_info          = path_info

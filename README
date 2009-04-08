@@ -10,10 +10,13 @@ Some points for discussion:
 ---------------------------
 
 * Caching the request object
-* Passing routing parameters to the app
+* Passing routing parameters to the app.
+  Currently with env['rack_router.params]
 * How should an application tell the router that it cannot handle
   the request?
+  Currently this is with a custom header
 * Should I pass in the matched route in the env
+  Currently with env['rack_router.route']
 * Should I allow an arbitrary hash to be set on the route (so that you
   can track any information).
 * How should multiple request objects be handled in context of mounting.

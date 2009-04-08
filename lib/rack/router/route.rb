@@ -55,7 +55,12 @@ class Rack::Router
     # Initializes a new route. This should only be used by the Builder classes.
     #
     # ==== Parameters
-    #
+    # app<#call>::
+    # path_info<String>::
+    # request_conditions<Hash>::
+    # segment_conditions<Hash>::
+    # params<Hash>::
+    # mount_point<Boolean>::
     #
     # :api: plugin
     def initialize(app, path_info, request_conditions, segment_conditions, params, mount_point = true)

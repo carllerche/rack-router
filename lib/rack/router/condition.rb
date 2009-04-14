@@ -1,8 +1,5 @@
 class Rack::Router
-  SEGMENT_REGEXP          = /(?:(:|\*)([a-z](?:_?[a-z0-9])*))/i
-  OPTIONAL_SEGMENT_REGEXP = /^(?:|.*?[^\\])(?:\\\\)*([\(\)])/ 
-  ESCAPED_REGEXP          = /(?:^|[^\\])\\(?:\\\\)*$/
-  SEGMENT_CHARACTERS      = "[^\/.,;?]".freeze
+  SEGMENT_CHARACTERS = "[^\/.,;?]".freeze
   
   class Condition
     def self.register(type)
@@ -17,21 +14,22 @@ class Rack::Router
     attr_reader :segments, :captures
 
     def initialize(method_name, pattern, conditions, anchored)
-      @method_name = method_name
-      @segments    = {}
-      @captures    = {}
-      @conditions  = conditions.dup
-      @anchored    = anchored
+      @method_name  = method_name
+      @segments     = {}
+      @captures     = {}
+      @conditions   = conditions.dup
+      @anchored     = anchored
 
       @conditions.default = /#{SEGMENT_CHARACTERS}+/
-
-      case pattern
-      when String
-        @segments = parse_segments_with_optionals(pattern.dup)
+      
+      if pattern.is_a?(Array) || pattern.is_a?(String)
+        @segments = pattern.is_a?(Array) ? pattern : [pattern]
         @pattern  = Regexp.new(anchor(compile(@segments)))
         @captures = captures_for(@segments)
+      elsif pattern.is_a?(Regexp)
+        @pattern = pattern
       else
-        @pattern = convert_to_regexp(pattern)
+        raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
       end
     end
 
@@ -39,6 +37,10 @@ class Rack::Router
       if data = @pattern.match(request.send(@method_name))
         return data[0], extract_captures(data)
       end
+    end
+    
+    def generatable?
+      !@segments.nil?
     end
 
     def generate(params, defaults = {})
@@ -51,58 +53,6 @@ class Rack::Router
     end
 
   private
-
-    # TODO: Handle escaped characters (parenthesis, colon, etc..)
-    def parse_segments_with_optionals(pattern, nest_level = 0)
-      segments = []
-
-      # Extract all the segments at this parenthesis level
-      while segment = pattern.slice!(OPTIONAL_SEGMENT_REGEXP)
-        # Append the segments that we came across so far
-        # at this level
-        segments.concat parse_segments(segment[0..-2]) if segment.length > 1
-        # If the parenthesis that we came across is an opening
-        # then we need to jump to the higher level
-        if segment[-1, 1] == '('
-          segments << parse_segments_with_optionals(pattern, nest_level + 1)
-        else
-          # Throw an error if we can't actually go back down (aka syntax error)
-          raise ArgumentError, "There are too many closing parentheses" if nest_level == 0
-          return segments
-        end
-      end
-
-      # Save any last bit of the string that didn't match the original regex
-      segments.concat parse_segments(pattern) unless pattern.empty?
-
-      # Throw an error if the string should not actually be done (aka syntax error)
-      raise ArgumentError, "You have too many opening parentheses" unless nest_level == 0
-
-      segments
-    end
-
-    def parse_segments(path)
-      segments = []
-
-      while match = (path.match(SEGMENT_REGEXP))
-        segment_name = match[2].to_sym
-        
-        # Handle false-positives due to escaped special characters
-        if match.pre_match =~ ESCAPED_REGEXP
-          segments << "#{match.pre_match[0..-2]}#{match[0]}"
-        else
-          segments << match.pre_match unless match.pre_match.empty?
-          segments << segment_name
-        
-          @conditions[segment_name] = /.+/ if match[1] == '*'
-        end
-        
-        path = match.post_match
-      end
-
-      segments << path unless path.empty?
-      segments
-    end
 
     def compile(segments)
       compiled = segments.map do |segment|

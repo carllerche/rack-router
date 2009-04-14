@@ -19,12 +19,19 @@ class Rack::Router::Builder
     
     def map(*args)
       options = args.last.is_a?(Hash) ? args.pop : {}
-      
+
       path   = args[0]
       method = args[1]
       
-      conditions                  = options[:conditions] || {}
-      conditions[:path_info]      = path if path
+      conditions = options[:conditions] || {}
+      conditions.each { |k,v| conditions[k] = v.to_s unless v.is_a?(Regexp) }
+      
+      if path
+        conditions[:path_info] = Rack::Router::Parsing.parse(path) do |segment_name, delimiter|
+          conditions[segment_name] = /.+/ if delimiter == '*'
+        end
+      end
+      
       conditions[:request_method] = upcase_method(method) if method
       
       route = Rack::Router::Route.new(options[:to], options[:at], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {}, !options[:anchor])

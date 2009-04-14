@@ -28,6 +28,7 @@ module Rack
     autoload :Route,         'rack/router/route'
     autoload :Condition,     'rack/router/condition'
     autoload :PathCondition, 'rack/router/condition'
+    autoload :Parsing,       'rack/router/parsing'
     autoload :Builder,       'rack/router/builders'
     autoload :Utils,         'rack/router/utils'
     

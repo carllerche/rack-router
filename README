@@ -20,3 +20,8 @@ Some points for discussion:
 * Should I allow an arbitrary hash to be set on the route (so that you
   can track any information).
 * How should multiple request objects be handled in context of mounting.
+
+
+
+
+* Be able to provide route paths using the internal array / string / symbol representation

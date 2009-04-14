@@ -63,25 +63,13 @@ describe "When recognizing requests" do
       route_for("", :method => "get").should be_missing
     end
     
-    it "combines Array elements using OR" do
+    it "can use a regular expression to specify OR" do
       prepare do |r|
-        r.map nil, [:get, :post], :to => HelloApp, :with => { :action => "index" }
+        r.map nil, /get|post/i, :to => HelloApp, :with => { :action => "index" }
       end
       
       route_for('/anything', :method => "get").should    have_route(HelloApp, :action => "index")
       route_for('/anything', :method => "post").should   have_route(HelloApp, :action => "index")
-      route_for('/anything', :method => "put").should    be_missing
-      route_for('/anything', :method => "delete").should be_missing
-    end
-    
-    it "handles Regexps inside of condition arrays" do
-      prepare do |r|
-        r.map nil, [/^g[aeiou]?t$/i, :post], :to => HelloApp
-      end
-      
-      route_for('/anything', :method => "get").should    have_route(HelloApp)
-      route_for('/anything', :method => "got").should    have_route(HelloApp)
-      route_for('/anything', :method => "post").should   have_route(HelloApp)
       route_for('/anything', :method => "put").should    be_missing
       route_for('/anything', :method => "delete").should be_missing
     end
@@ -116,9 +104,9 @@ describe "When recognizing requests" do
         route_for("/foo", :scheme => "https").should be_missing
       end
 
-      it "combines Array elements using OR" do
+      it "can use regular expressions" do
         prepare do |r|
-          r.map "/hello", [:get, :post], :to => HelloApp
+          r.map "/hello", /get|post/i, :to => HelloApp
         end
 
         route_for("/hello",   :method => "get").should    have_route(HelloApp)

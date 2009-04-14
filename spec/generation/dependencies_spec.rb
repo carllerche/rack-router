@@ -53,7 +53,7 @@ describe "When generating URLs" do
   describe "a router with an informal protocol" do
     
     before(:each) do
-      pending
+      pending "I'm not sure that this is thought out as well as it could be"
     end
     
     it "just works" do

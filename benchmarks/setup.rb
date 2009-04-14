@@ -44,5 +44,7 @@ class SuccessApp
 end
 
 class SuccessController < ActionController::Base
-  # Nothing here
+  def self.call(env)
+    [ 200, { "Content-Type" => "text/html" }, "Success" ]
+  end
 end

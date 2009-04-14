@@ -23,17 +23,22 @@ merb_foobar = Merb::Request.new(rack_foobar)
 
 RBench.run(10_000) do
   
-  column :one, :title => "rack-router"
-  column :two, :title => "merb routing"
+  column :times
+  column :rack,   :title => "rack-router"
+  column :merb,   :title => "merb routing"
+  # column :rails,  :title => "rails routing"
+  column :diff,   :title => "rack vs. merb", :compare => [:merb, :rack]
   
-  report "A string path" do
-    one { router.call(rack_success) }
-    two { Merb::Router.match(merb_success) }
-  end
-  
-  report "A path with captures" do
-    one { router.call(rack_foobar) }
-    two { Merb::Router.match(merb_foobar) }
+  group "Matching simple routes" do
+    report "A string path" do
+      rack { router.call(rack_success) }
+      merb { Merb::Router.match(merb_success) }
+    end
+
+    report "A path with captures" do
+      rack { router.call(rack_foobar) }
+      merb { Merb::Router.match(merb_foobar) }
+    end
   end
   
 end

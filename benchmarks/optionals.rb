@@ -27,37 +27,41 @@ merb_optionals_6 = Merb::Request.new(rack_optionals_6)
 
 RBench.run(10_000) do
 
-  column :one, :title => "rack-router"
-  column :two, :title => "merb routing"
+  column :times
+  column :rack,   :title => "rack-router"
+  column :merb,   :title => "merb routing"
+  # column :rails,  :title => "rails routing"
+  column :diff,   :title => "rack vs. merb", :compare => [:merb, :rack]
 
-  report "Matching /hello" do
-    one { router.call(rack_optionals_1) }
-    two { Merb::Router.match(merb_optionals_1) }
+  group "Matching with optionals" do
+    report "Matching /hello" do
+      rack { router.call(rack_optionals_1) }
+      merb { Merb::Router.match(merb_optionals_1) }
+    end
+
+    report "Matching /hello.js" do
+      rack { router.call(rack_optionals_2) }
+      merb { Merb::Router.match(merb_optionals_2) }
+    end
+
+    report "Matching /hello/world" do
+      rack { router.call(rack_optionals_3) }
+      merb { Merb::Router.match(merb_optionals_3) }
+    end
+
+    report "Matching /hello/world.js" do
+      rack { router.call(rack_optionals_4) }
+      merb { Merb::Router.match(merb_optionals_4) }
+    end
+
+    report "Matching /hello/world/10" do
+      rack { router.call(rack_optionals_5) }
+      merb { Merb::Router.match(merb_optionals_5) }
+    end
+
+    report "Matching /hello/world/10.js" do
+      rack { router.call(rack_optionals_6) }
+      merb { Merb::Router.match(merb_optionals_6) }
+    end
   end
-
-  report "Matching /hello.js" do
-    one { router.call(rack_optionals_2) }
-    two { Merb::Router.match(merb_optionals_2) }
-  end
-
-  report "Matching /hello/world" do
-    one { router.call(rack_optionals_3) }
-    two { Merb::Router.match(merb_optionals_3) }
-  end
-
-  report "Matching /hello/world.js" do
-    one { router.call(rack_optionals_4) }
-    two { Merb::Router.match(merb_optionals_4) }
-  end
-
-  report "Matching /hello/world/10" do
-    one { router.call(rack_optionals_5) }
-    two { Merb::Router.match(merb_optionals_5) }
-  end
-
-  report "Matching /hello/world/10.js" do
-    one { router.call(rack_optionals_6) }
-    two { Merb::Router.match(merb_optionals_6) }
-  end
-
 end

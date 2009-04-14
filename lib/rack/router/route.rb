@@ -46,6 +46,9 @@ class Rack::Router
     # :api: public
     attr_reader :router
     
+    # :api: private
+    attr_reader :http_methods
+    
     # Symbol representing the name of the route. This name can be used
     # to look up the route.
     #
@@ -87,6 +90,13 @@ class Rack::Router
         @request_conditions[method_name] = 
           # TODO: Refactor this ugliness
           Condition.build(method_name, pattern, segment_conditions, !(mount_point? || @mount_point))
+      end
+      
+      # Figure out the HTTP methods that this route can respond to
+      @http_methods = []
+      condition     = request_conditions[:request_method]
+      %w(GET POST PUT DELETE HEAD).each do |method|
+        @http_methods << method if !condition || condition.pattern =~ method
       end
       
       # Once the route is compiled, we don't want to be able to modify it any further.

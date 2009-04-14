@@ -15,18 +15,16 @@ class Rack::Router
       builder       = options.delete(:builder) || Builder::Simple
       @dependencies = options.delete(:dependencies) || {}
       @root         = self
+      @route_sets   = {}
       @named_routes = {}
       @mounted_apps = {}
       @routes = builder.run(options, &block)
       
-      @routes.each do |route|
-        route.compile(self)
-        if route.name
-          route.mount_point? ?
-            @mounted_apps[route.name] = route.app :
-            @named_routes[route.name] = route
-        end
+      %w(GET POST PUT DELETE HEAD).each do |method|
+        @route_sets[method] = RouteSet.new
       end
+      
+      compile
       
       # Set the root of the router tree for each router
       descendants.each { |d| d.root = self }
@@ -35,16 +33,8 @@ class Rack::Router
     end
     
     def call(env)
-      request = Rack::Request.new(env)
-      
       env["rack_router.params"] ||= {}
-      
-      for route in routes
-        response = route.handle(request, env)
-        return response if response && handled?(response)
-      end
-      
-      NOT_FOUND_RESPONSE
+      @route_sets[ env["REQUEST_METHOD"] ].handle(Rack::Request.new(env), env)
     end
     
     def url(name, params = {}, fallback = {})
@@ -90,8 +80,22 @@ class Rack::Router
     
   private
   
-    def handled?(response)
-      response[1][STATUS_HEADER] != NOT_FOUND
+    def compile
+      @routes.each do |route|
+        # Compile the route
+        route.compile(self)
+        # Add the route to the appropriate route set
+        route.http_methods.each do |method|
+          @route_sets[method] << route
+        end
+      
+        # Add the route to 
+        if route.name
+          route.mount_point? ?
+            @mounted_apps[route.name] = route.app :
+            @named_routes[route.name] = route
+        end
+      end
     end
     
     # TODO: A thought occurs... method_missing is slow.

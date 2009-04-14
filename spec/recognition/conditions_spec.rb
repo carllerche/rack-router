@@ -79,7 +79,7 @@ describe "When recognizing requests" do
         r.map "/hello", :method => nil, :to => HelloApp
       end
       
-      [:get, :post, :puts, :delete].each do |method|
+      [:get, :post, :put, :delete].each do |method|
         route_for("/hello", :method => method).should have_route(HelloApp)
       end
     end

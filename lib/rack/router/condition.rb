@@ -11,7 +11,7 @@ class Rack::Router
       @@types[name].new(name, pattern, segment_conditions, anchored)
     end
     
-    attr_reader :segments, :captures
+    attr_reader :segments, :captures, :pattern
 
     def initialize(method_name, pattern, conditions, anchored)
       @method_name  = method_name

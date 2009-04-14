@@ -4,7 +4,13 @@ require "rack"
 require "rack/router"
 # For comparison purposes
 require "merb-core"
+require "action_controller"
+# Benchmarks yo!
 require "rbench"
+
+class RailsGenerator
+  # Nothing here
+end
 
 def env_for(path, options = {})
   env = {}
@@ -21,9 +27,22 @@ def prepare(options = {}, &block)
   Rack::Router.new(nil, options, &block)
 end
 
+def draw(&block)
+  ActionController::Routing::Routes.draw(&block)
+  RailsGenerator.send(:include, ActionController::UrlWriter)
+  RailsGenerator.protected_instance_methods.each do |method|
+    RailsGenerator.send(:public, method)
+  end
+  RailsGenerator.default_url_options = { :host => "example.org" }
+  RailsGenerator.new
+end
+
 class SuccessApp
   def self.call(env)
     [ 200, { "Content-Type" => "text/html" }, "Success" ]
   end
 end
 
+class SuccessController < ActionController::Base
+  # Nothing here
+end

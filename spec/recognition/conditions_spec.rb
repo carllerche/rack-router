@@ -6,16 +6,19 @@ describe "When recognizing requests" do
   
     before(:each) do
       prepare do |r|
-        r.map "/info", :get, :to => FooApp, :with => { :action => "info" }
+        r.map "/info", :get,     :to => FooApp, :with => { :action => "info" }, :anchor => true
+        r.map "/info/bar", :get, :to => FooApp, :with => { :action => "bar" },  :anchor => true
       end
     end
   
     it "matches the path and return the paramters passed in" do
       route_for("/info").should have_route(FooApp, :action => "info")
+      route_for("/info/bar").should have_route(FooApp, :action => "bar")
     end
   
     it "does not match a different path" do
       route_for("/notinfo").should be_missing
+      route_for("/info/bad").should be_missing
     end
   
     it "ignores trailing slashes" do

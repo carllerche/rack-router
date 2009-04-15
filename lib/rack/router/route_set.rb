@@ -1,13 +1,20 @@
 class Rack::Router
   class RouteSet < Hash
     
-    def initialize
+    def initialize(dynamic_routes = [], depth = 0)
+      super(self)
+      @depth  = depth
       @routes = []
-      super
     end
     
     def <<(route)
-      @routes << route
+      if key = key_for(route)
+        self[key] = RouteSet.new([], @depth + 1) if self[key] == self
+        self[key] << route
+      else
+        @routes << route
+      end
+      
       route
     end
     
@@ -22,8 +29,16 @@ class Rack::Router
     
   private
   
+    def leaf?
+      default == self
+    end
+  
     def handled?(response)
       response[1][STATUS_HEADER] != NOT_FOUND
+    end
+    
+    def key_for(route)
+      route.path_info && route.path_info.normalized_segments[@depth]
     end
   
   end

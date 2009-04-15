@@ -15,7 +15,7 @@ class Rack::Router
 
     def initialize(method_name, pattern, conditions, anchored)
       @method_name  = method_name
-      @segments     = {}
+      @segments     = []
       @captures     = {}
       @conditions   = conditions.dup
       @anchored     = anchored
@@ -27,6 +27,7 @@ class Rack::Router
         @pattern  = Regexp.new(anchor(compile(@segments)))
         @captures = captures_for(@segments)
       elsif pattern.is_a?(Regexp)
+        @regexp  = true
         @pattern = pattern
       else
         raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
@@ -160,6 +161,42 @@ class Rack::Router
   class PathCondition < Condition
     
     register :path_info
+    attr_reader :normalized_segments
+    
+    def initialize(*)
+      super
+      
+      @dynamic = @anchored || @regexp
+      @normalized_segments = []
+      
+      # Parse the segments and normalize them for hashing
+      @segments.each do |segment|
+        case segment
+        when String
+          head, *tail = segment.split(%r'[/.,;?]+')
+          if @normalized_segments.last.is_a?(String)
+            @normalized_segments.last << head
+          else
+            tail.unshift(head) unless head == ''
+          end
+          @normalized_segments.concat(tail) if tail.any?
+        when Symbol
+          if @conditions[segment] == /#{SEGMENT_CHARACTERS}+/
+            @normalized_segments << segment 
+          else
+            @dynamic = true
+            break
+          end
+        else
+          @dynamic = true
+          break
+        end
+      end
+    end
+    
+    def dynamic?
+      @dynamic
+    end
     
   private
     

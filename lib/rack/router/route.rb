@@ -107,6 +107,10 @@ class Rack::Router
       @keys ||= [@request_conditions.map { |c| c.captures }, @params.keys].flatten.uniq
     end
     
+    def path_info
+      @request_conditions[:path_info]
+    end
+    
     # Determines whether or not the current route is a mount point to a child
     # router.
     def mount_point?

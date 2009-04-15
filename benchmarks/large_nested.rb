@@ -27,9 +27,6 @@ draw do |r|
   r.map "/lol", :controller => "success"
 end
 
-puts Merb::Router.send(:compiled_statement)
-exit
-
 rack_front = env_for("/aa/aa")
 merb_front = Merb::Request.new(rack_front)
 

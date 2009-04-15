@@ -48,21 +48,33 @@ class Rack::Router
     def <<(route)
       @children << route unless @children.include?(route) # Track the route
       
-      if dynamic_for_depth?(route) || key_for(route).is_a?(Symbol)
-        @routes << route unless @routes.include?(route)
-        default << route
-        values.each { |set| set << route }
+      if dynamic_for_depth?(route)
+        add_route(route)
+        add_default_route(route)
+      elsif key_for(route).is_a?(Symbol)
+        add_default_route(route)
       elsif key = key_for(route)
-        self[key] = new_sub_set(key) if self[key] == self
+        self[key] = new_sub_set(key) unless has_key?(key)
         self[key] << route
       else
-        @routes << route unless @routes.include?(route)
+        add_route(route)
       end
       
       route
     end
     
   private
+  
+    def add_route(route)
+      @routes << route unless @routes.include?(route)
+      route
+    end
+    
+    def add_default_route(route)
+      default << route
+      values.each { |set| set << route }
+      route
+    end
     
     def dynamic_for_depth?(route, depth = @depth)
       !route.path_info || (key_for(route, depth).nil? && route.path_info.dynamic?)
@@ -78,10 +90,12 @@ class Rack::Router
     end
   
     def for_child?(route, key)
-      return true if dynamic_for_depth?(route) && dynamic_for_depth?(route, @depth + 1)
+      # If the route is dynamic, it gets added
+      return true if dynamic_for_depth?(route)
+      
       if dynamic_for_depth?(route, @depth + 1)
-        next_key = key_for(route, @depth + 1)
-        return true if next_key.is_a?(Symbol) || next_key == key
+        route_key = key_for(route, @depth)
+        return true if route_key.is_a?(Symbol) || route_key == key
       end
     end
   end

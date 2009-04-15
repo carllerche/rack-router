@@ -30,7 +30,18 @@ Rake::GemPackageTask.new(spec) do |package|
   package.gem_spec = spec
 end
 
-desc "Run all examples"
+desc "Run all benchmarks"
+task :benchmark do
+  Dir["benchmarks/*.rb"].each do |file|
+    pid = fork do
+      load file
+      exit
+    end
+    Process.wait2(pid)
+  end
+end
+
+desc "Run all specs"
 Spec::Rake::SpecTask.new('spec') do |t|
   t.spec_files = FileList['spec/**/*.rb']
   t.spec_opts = ["-c", "-fs"]

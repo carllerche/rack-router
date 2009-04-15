@@ -3,7 +3,6 @@ $LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib
 require "rubygems"
 require "spec"
 require "rack/router"
-require "ruby-debug" rescue nil # Temporary to make my life easier
 
 module Spec
   module Helpers

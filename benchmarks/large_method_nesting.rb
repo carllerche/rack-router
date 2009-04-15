@@ -48,20 +48,20 @@ RBench.run(1_000) do
   column :merb,   :title => "merb routing"
   column :rails,  :title => "rails routing"
   column :diff,   :title => "rack vs. merb", :compare => [:merb, :rack]
-  
+
   group "A 1521 route set with routes nested evenly 2 levels deep" do
     report "Matching the first route" do
       rack { router.call(rack_front) }
       merb { Merb::Router.match(merb_front) }
       rails { ActionController::Routing::Routes.call(rack_front) }
     end
-    
+  
     report "Matching the middle route" do
       rack { router.call(rack_middle) }
       merb { Merb::Router.match(merb_middle) }
       rails { ActionController::Routing::Routes.call(rack_middle) }
     end
-    
+  
     report "Matching the last route" do
       rack { router.call(rack_end) }
       merb { Merb::Router.match(merb_end) }

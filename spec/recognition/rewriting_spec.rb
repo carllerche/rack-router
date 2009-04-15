@@ -14,7 +14,7 @@ describe "When recognizing requests" do
     
     it "does not leak PATH_INFO across rewritten routes that do not match" do
       prepare do |r|
-        r.map "/hello/world", :to => lambda { Rack::Router::NOT_FOUND_RESPONSE }, :at => "/omgfail"
+        r.map "/hello/world", :to => lambda { |env| Rack::Router::NOT_FOUND_RESPONSE }, :at => "/omgfail"
         r.map "/hello/world", :to => HelloApp
       end
       

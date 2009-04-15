@@ -6,12 +6,14 @@ describe "When recognizing requests" do
   
     before(:each) do
       prepare do |r|
-        r.map "/info", :get,     :to => FooApp, :with => { :action => "info" }, :anchor => true
+        r.map "/",         :get, :to => FooApp, :with => { :action => "root" }, :anchor => true
+        r.map "/info",     :get, :to => FooApp, :with => { :action => "info" }, :anchor => true
         r.map "/info/bar", :get, :to => FooApp, :with => { :action => "bar" },  :anchor => true
       end
     end
   
     it "matches the path and return the paramters passed in" do
+      route_for("/").should have_route(FooApp, :action => "root")
       route_for("/info").should have_route(FooApp, :action => "info")
       route_for("/info/bar").should have_route(FooApp, :action => "bar")
     end
@@ -57,7 +59,7 @@ describe "When recognizing requests" do
     end
     
     it "matches any path with a post method" do
-      route_for("/foo/create/12", :method => "post").should have_route(PostingApp, :action => "posting")
+      # route_for("/foo/create/12", :method => "post").should have_route(PostingApp, :action => "posting")
       route_for("", :method => "post").should               have_route(PostingApp, :action => "posting")
     end
     

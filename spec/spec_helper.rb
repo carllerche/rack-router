@@ -19,7 +19,7 @@ module Spec
       env = {}
       env["REQUEST_METHOD"]  = (options.delete(:method) || "GET").to_s.upcase
       env["REQUEST_URI"]     = ((options[:script_name] || "/") + path).squeeze("/")
-      env["PATH_INFO"]       = path
+      env["PATH_INFO"]       = path.squeeze("/").sub(%r'/$', '')
       env["SCRIPT_NAME"]     = options.delete(:script_name) || "/"
       env["HTTP_HOST"]       = options.delete(:host) || "example.org"
       env["rack.url_scheme"] = options[:scheme] if options[:scheme]

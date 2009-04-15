@@ -7,6 +7,7 @@ require "merb-core"
 require "action_controller"
 # Benchmarks yo!
 require "rbench"
+require 'ruby-debug'
 
 class RailsGenerator
   # Nothing here

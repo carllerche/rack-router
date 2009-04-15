@@ -166,7 +166,7 @@ class Rack::Router
     def initialize(*)
       super
       
-      @dynamic = @anchored || @regexp
+      @dynamic = !@anchored || @regexp
       @normalized_segments = []
       
       # Parse the segments and normalize them for hashing

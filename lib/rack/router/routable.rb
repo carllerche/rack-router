@@ -89,6 +89,7 @@ class Rack::Router
       @routes.each do |route|
         # Compile the route
         route.compile(self)
+        
         # Add the route to the appropriate route set
         route.http_methods.each do |method|
           @route_sets[method] << route

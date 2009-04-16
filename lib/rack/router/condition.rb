@@ -217,12 +217,6 @@ class Rack::Router
     
     def compile_generation
       if @segments
-        puts %{
-          def generate(params, defaults = {})
-            #{generation_requirement}
-            "#{compiled_segments(@segments)}"
-          end
-        }
         singleton.class_eval <<-EVAL, __FILE__, __LINE__ + 1
           def generate(params, defaults = {})
             #{generation_requirement}

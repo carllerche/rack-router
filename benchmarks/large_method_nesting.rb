@@ -47,9 +47,8 @@ RBench.run(1_000) do
   column :rack,   :title => "rack-router"
   column :merb,   :title => "merb routing"
   column :rails,  :title => "rails routing"
-  column :diff,   :title => "rack vs. merb", :compare => [:merb, :rack]
 
-  group "A 1521 route set with routes nested evenly 2 levels deep" do
+  group "A 1521 route set with routes nested evenly over method and 2 path levels deep" do
     report "Matching the first route" do
       rack { router.call(rack_front) }
       merb { Merb::Router.match(merb_front) }

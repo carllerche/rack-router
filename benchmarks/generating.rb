@@ -39,7 +39,6 @@ RBench.run(10_000) do
   column :rack,   :title => "rack-router"
   column :merb,   :title => "merb routing"
   column :rails,  :title => "rails routing"
-  column :diff,   :title => "rack vs. merb", :compare => [:merb, :rack]
   
   group "Route generation" do
   

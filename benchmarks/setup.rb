@@ -2,18 +2,14 @@ $LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib
 require "rubygems"
 require "rack"
 require "rack/router"
-# For comparison purposes
-require "merb-core"
-require "action_controller"
-# Benchmarks yo!
 require "rbench"
-
-class RailsGenerator
-  # Nothing here
-end
+# For comparison purposes
+require "merb-core"           # Merb
+require "sinatra/base"        # Sinatra
+require "action_controller"   # Rails
 
 def env_for(path, options = {})
-  env = {}
+  env = Rack::MockRequest::DEFAULT_ENV.dup
   env["REQUEST_METHOD"]  = (options.delete(:method) || "GET").to_s.upcase
   env["REQUEST_URI"]     = ((options[:script_name] || "/") + path).squeeze("/")
   env["PATH_INFO"]       = path
@@ -23,9 +19,43 @@ def env_for(path, options = {})
   env
 end
 
+def build_requests(path, options = {})
+  env = env_for(path, options = {})
+  return env, Merb::Request.new(env), Sinatra::Request.new(env), env
+end
+
+# ==== rack-router ====
 def prepare(options = {}, &block)
   Rack::Router.new(nil, options, &block)
 end
+
+class SuccessApp
+  def self.call(env)
+    [ 200, { "Content-Type" => "text/html" }, "Success" ]
+  end
+end
+
+# ==== Sinatra ====
+module Sinatra
+  class Mocked < Base
+    
+    def call(request)
+      dup.call!(request)
+    end
+    
+    def call!(request)
+      @env, @request = request.env, request
+      catch(:halt) { route! }
+    end
+    
+    def route!
+      super
+    end
+  end
+end
+
+# ==== Ruby on Rails setup ====
+class RailsGenerator ; end
 
 def draw(&block)
   ActionController::Routing::Routes.draw(&block)
@@ -35,12 +65,6 @@ def draw(&block)
   end
   RailsGenerator.default_url_options = { :host => "example.org" }
   RailsGenerator.new
-end
-
-class SuccessApp
-  def self.call(env)
-    [ 200, { "Content-Type" => "text/html" }, "Success" ]
-  end
 end
 
 class SuccessController < ActionController::Base

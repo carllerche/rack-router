@@ -22,7 +22,7 @@ module Rack
     # A full rack response that is used to indicate that no route was matched.
     # Routable middleware will return this rack response after attempting to
     # match the passed env against it's routes.
-    NOT_FOUND_RESPONSE = [ 404, { STATUS_HEADER => NOT_FOUND }, NOT_FOUND ]
+    NOT_FOUND_RESPONSE = [ 404, { STATUS_HEADER => NOT_FOUND }, [NOT_FOUND] ]
     
     require 'rack/router/routable'
     require 'rack/router/route'

@@ -85,6 +85,40 @@ module Spec
         given[0] == 404
       end
     end
+    
+    def have_status_code
+      simple_matcher("a request") do |given, m|
+        env = Marshal.load(given[2]) rescue nil
+        
+        m.failure_message = "expected the request to have a status code, but it didn't: #{env.inspect}"
+        success_codes = [200, 201, 203, 204]
+        error_codes = [400, 401, 402, 403, 404, 500, 501, 502, 503]
+        redirect_codes = [301, 302, 303, 304]
+        status_codes = success_codes + error_codes + redirect_codes
+        status_codes.include? given[0]
+      end
+    end
+    
+    def have_headers
+      simple_matcher("a request") do |given, m|
+        env = Marshal.load(given[2]) rescue nil
+        
+        m.failure_message = "expected the request to have a header hash, but it didn't: #{env.inspect}"
+        given[1].kind_of? Hash
+      end
+    end
+    
+    def have_valid_body
+      simple_matcher("a request") do |given, m|
+        env = Marshal.load(given[2]) rescue nil
+        if (RUBY_VERSION.to_f < 1.9) && given[2].kind_of?(String)
+          puts "*** WARNING: Ruby 1.9 does not support String#each. Should return an array instead"
+        end
+        m.failure_message = "expected the request body to accept each, but it didn't: #{env.inspect}"
+        given[2].respond_to? :each
+      end
+    end
+    
   end
 end
 

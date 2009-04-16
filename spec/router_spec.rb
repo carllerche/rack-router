@@ -103,4 +103,22 @@ describe Rack::Router do
     
   end
   
+  describe "conforms to rake spec" do
+    before(:all) do
+      prepare { |r| r.map '/hello/\:world', :to => FooApp }
+    end
+    
+    it "returns a status code" do
+      route_for('/hello/fail').should have_status_code
+    end
+    
+    it "returns a hash of headers" do
+      route_for('/hello/fail').should have_headers
+    end
+    
+    it "returns an object with an each method for the body" do
+      route_for('/hello/fail').should have_valid_body
+    end
+  end
+  
 end

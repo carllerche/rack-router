@@ -16,7 +16,15 @@ class Rack::Router
       "/#{path}".squeeze("/").sub(%r'/+$', '')
     end
     
-    module_function :normalize 
+    module_function :normalize
+    
+    # Returns the number of captures for a given regular expression
+    def regexp_arity(regexp)
+      return 0 unless regexp.is_a?(Regexp)
+      regexp.source.scan(/(?!\\)[(](?!\?[#=:!>-imx])/).length
+    end
+    
+    module_function :regexp_arity
     
   end
 end

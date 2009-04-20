@@ -11,6 +11,8 @@ class Rack::Router
       @@types[name].new(name, pattern, segment_conditions, anchored)
     end
     
+    include ConditionOptimizations
+    
     attr_reader :segments, :captures, :pattern
 
     def initialize(method_name, pattern, conditions, anchored)
@@ -32,6 +34,8 @@ class Rack::Router
       else
         raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
       end
+      
+      super # Optimize recognize / generate
     end
 
     def match(request)
@@ -95,7 +99,7 @@ class Rack::Router
 
         captures.each do |capture|
           offsets[capture] = counter
-          counter += (1 + regexp_arity(@conditions[capture]))
+          counter += (1 + Utils.regexp_arity(@conditions[capture]))
         end
 
         offsets
@@ -137,13 +141,7 @@ class Rack::Router
       when Regexp then anchor ? /^#{item}$/ : item
       else Regexp.new("^#{Regexp.escape(item.to_s)}$")
       end
-    end
-
-    # Returns the number of captures for a given regular expression
-    def regexp_arity(regexp)
-      return 0 unless regexp.is_a?(Regexp)
-      regexp.source.scan(/(?!\\)[(](?!\?[#=:!>-imx])/).length
-    end    
+    end  
   end
   
   class FallbackCondition < Condition
@@ -165,7 +163,21 @@ class Rack::Router
     
     def initialize(*)
       super
-      
+      normalize_segments
+    end
+    
+    def dynamic?
+      @dynamic
+    end
+    
+  private
+    
+    def anchor(pattern)
+      pattern = Utils.normalize(super)
+      @anchored ? "^#{pattern}$" : pattern.sub(%r'^(.*?)/*$', '^\1(?:/|$)')
+    end
+    
+    def normalize_segments
       @dynamic = !@anchored || @regexp
       @normalized_segments = []
       
@@ -192,78 +204,6 @@ class Rack::Router
           break
         end
       end
-      
-      compile_generation
-    end
-    
-    def dynamic?
-      @dynamic
-    end
-    
-    def generate(params, defaults = {})
-      raise ArgumentError, "Condition cannot be generated"
-    end
-    
-  private
-    
-    def anchor(pattern)
-      pattern = Utils.normalize(super)
-      @anchored ? "^#{pattern}$" : pattern.sub(%r'^(.*?)/*$', '^\1(?:/|$)')
-    end
-    
-    def singleton
-      (class << self ; self ; end)
-    end
-    
-    def compile_generation
-      if @segments
-        singleton.class_eval <<-EVAL, __FILE__, __LINE__ + 1
-          def generate(params, defaults = {})
-            #{generation_requirement}
-            "#{compiled_segments(@segments)}"
-          end
-        EVAL
-      end
-    end
-    
-    def generation_requirement
-      if @segments.any? { |s| s.is_a?(Symbol) }
-        ruby = <<-EVAL
-          unless #{segment_requirement(@segments)}
-            raise ArgumentError, "Condition cannot be generated with \#{params.inspect}"
-          end
-        EVAL
-      end
-    end
-    
-    def segment_requirement(segments)
-      captures = segments.select { |s| s.is_a?(Symbol) }
-      captures.map do |s|
-        condition = convert_to_regexp(@conditions[s], true)
-        "(v_#{s} = (params[:#{s}] || defaults[:#{s}]).to_s) =~ #{condition.inspect}"
-      end.join(' && ')
-    end
-    
-    def compiled_segments(segments, optionals = false)
-      # Do nothing if all the segments are strings
-      return if optionals && segments.flatten.all? { |s| s.is_a?(String) }
-      
-      segments.map do |segment|
-        case segment
-        when String
-          segment
-        when Symbol
-          # Delete the segment from the params hash and return it
-          "\#{params.delete(:#{segment}) ; v_#{segment}}"
-        when Array
-          captures = captures_for(segment)
-          if captures.any?
-            "\#{if (#{captures.map{|c|"params[:#{c}]"}.join(' || ')}) && #{segment_requirement(segment)} ; \"#{compiled_segments(segment, true)}\" ; end}"
-          else
-            compiled_segments(segment, true)
-          end
-        end
-      end.join
     end
   end
 end

@@ -27,6 +27,7 @@ module Rack
     require 'rack/router/routable'
     require 'rack/router/route'
     require 'rack/router/route_set'
+    require 'rack/router/optimizations'
     require 'rack/router/condition'
     require 'rack/router/parsing'
     require 'rack/router/builders'

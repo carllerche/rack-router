@@ -102,6 +102,8 @@ class Rack::Router
             @named_routes[route.name] = route
         end
       end
+      
+      @route_sets.each { |k,v| v.compile }
     end
     
     # TODO: A thought occurs... method_missing is slow.

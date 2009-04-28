@@ -1,6 +1,7 @@
 class Rack::Router
   # TODO: Refactor this file so that it is better organized
   module Handling
+    
     def handle(request, env)
       for route in @routes
         response = route.handle(request, env)
@@ -9,14 +10,44 @@ class Rack::Router
       
       NOT_FOUND_RESPONSE
     end
+    
+    def compile
+      (class << self ; self ; end).class_eval <<-EVAL, __FILE__, __LINE__+1
+        def handle(request, env)
+          #{compiled_statement}
+          NOT_FOUND_RESPONSE
+        end
+      EVAL
+    end
+    
   private
+  
     def handled?(response)
       response[1][STATUS_HEADER] != NOT_FOUND
+    end
+    
+    def compiled_statement
+      keys, body = [], ""
+      
+      @routes.each_with_index do |route, i|
+        keys.concat route.request_conditions.keys
+        
+        body << route.compiled_statement(i) do
+          <<-STATEMENT
+            resp = route.app.call(env)
+            return resp if resp && handled?(resp)
+          STATEMENT
+        end
+      end
+      
+      keys.uniq!
+      head = keys.map! { |k| "c_#{k} = request.#{k}" }.join(';')
+
+      "#{head}\n#{body}"
     end
   end
   
   class DynamicSet < Hash
-    
     include Handling
     
     attr_reader :routes
@@ -33,8 +64,7 @@ class Rack::Router
   end
   
   class RouteSet < Hash
-    
-    include Handling, Optimizations::RouteSet
+    include Handling
     
     attr_reader :routes
     
@@ -58,6 +88,12 @@ class Rack::Router
       end
       
       route
+    end
+    
+    def compile
+      super
+      default.compile
+      values.each { |set| set.compile }
     end
     
   private

@@ -125,17 +125,11 @@ class Rack::Router
       path_info, script_name = env["PATH_INFO"], env["SCRIPT_NAME"]
       
       return unless request_conditions.all? do |method_name, condition|
-        # TODO: Refactor this... it lacks awesome
-        next true unless request.respond_to?(method_name)
         matched, captures = condition.match(request)
         if matched
           params.merge!(captures)
           if method_name == :path_info
-            new_path_info = @path_info.dup if @path_info
-            new_path_info ||= env["PATH_INFO"].sub(/^#{Regexp.escape(matched)}/, '')
-            new_path_info.gsub!(SEGMENT_REGEXP) { |s| params[$2.to_sym] }
-            env["SCRIPT_NAME"] = Utils.normalize(request.env["SCRIPT_NAME"] + matched)
-            env["PATH_INFO"]   = Utils.normalize(new_path_info)
+            shift_path_info(env, params, matched) 
           end
           true
         end
@@ -162,6 +156,15 @@ class Rack::Router
       
       uri << "?#{Rack::Utils.build_query(query_params)}" if query_params.any?
       uri
+    end
+    
+    # :api: private
+    def shift_path_info(env, params, matched)
+      new_path_info = @path_info.dup if @path_info
+      new_path_info ||= env["PATH_INFO"].sub(/^#{Regexp.escape(matched)}/, '')
+      new_path_info.gsub!(SEGMENT_REGEXP) { |s| params[$2.to_sym] }
+      env["SCRIPT_NAME"] = Utils.normalize(env["SCRIPT_NAME"] + matched)
+      env["PATH_INFO"]   = Utils.normalize(new_path_info)
     end
     
   protected

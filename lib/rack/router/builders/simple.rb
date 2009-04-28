@@ -1,6 +1,8 @@
 class Rack::Router::Builder
   class Simple
     
+    REQUEST_METHODS = Rack::Request.instance_methods - Object.instance_methods
+    
     # Route format:
     # ---
     # :scheme :// :subdomain . :domain / :path
@@ -23,18 +25,24 @@ class Rack::Router::Builder
       path   = args[0]
       method = args[1]
       
-      conditions = options[:conditions] || {}
-      conditions.each { |k,v| conditions[k] = v.to_s unless v.is_a?(Regexp) }
+      request_conditions, segment_conditions = {}, {}
+      
+      (options[:conditions] || {}).each do |k,v|
+        v = v.to_s unless v.is_a?(Regexp)
+        REQUEST_METHODS.include?(k.to_s) ?
+          request_conditions[k] = v :
+          segment_conditions[k] = v
+      end
       
       if path
-        conditions[:path_info] = Rack::Router::Parsing.parse(path) do |segment_name, delimiter|
-          conditions[segment_name] = /.+/ if delimiter == '*'
+        request_conditions[:path_info] = Rack::Router::Parsing.parse(path) do |segment_name, delimiter|
+          segment_conditions[segment_name] = /.+/ if delimiter == '*'
         end
       end
       
-      conditions[:request_method] = upcase_method(method) if method
+      request_conditions[:request_method] = upcase_method(method) if method
       
-      route = Rack::Router::Route.new(options[:to], options[:at], conditions.reject { |k,v| k == :id }, conditions.dup, options[:with] || {}, !options[:anchor])
+      route = Rack::Router::Route.new(options[:to], options[:at], request_conditions, segment_conditions, options[:with] || {}, !options[:anchor])
       route.name = options[:name].to_sym if options[:name]
       
       @routes << route

@@ -2,8 +2,12 @@ class Rack::Router
   module Optimizations
     module Condition
     
-      def compiled_statement
+      def condition_statement
         "c_#{@method_name} =~ #{@pattern.inspect} && (#{compiled_captures};true)"
+      end
+      
+      def capture_statements
+        captures.map { |capture| ":#{capture} => p_#{capture}" }
       end
     
     private
@@ -15,7 +19,9 @@ class Rack::Router
     
       # ==== Route Recognition ====
       def compiled_captures
-        offsets.map { |capture, i| "p_#{capture} = $#{i}" }.join(';')
+        c = offsets.map { |capture, i| "p_#{capture} = $#{i}" }
+        c << "matched_path_info = $&" if @method_name == :path_info
+        c.join(';')
       end
     
       # ==== Route Generation ====
@@ -72,9 +78,12 @@ class Rack::Router
 
     module Route
       
-      def compiled_statement
+      def compiled_statement(index)
         return <<-STATEMENT
           if #{condition_statements}
+            route = @routes[#{index}]
+            #{params_extraction}
+            #{path_info_shifting}
             #{yield}
           end
         STATEMENT
@@ -84,29 +93,17 @@ class Rack::Router
     
       def condition_statements
         return "true" if request_conditions.empty?
-        request_conditions.map { |c| c.compiled_statement }.join(' && ')
+        request_conditions.map { |k,v| v.condition_statement }.join(' && ')
       end
       
-    end
-    
-    module RouteSet
-      
-      def compile
-        
+      def params_extraction
+        statements = request_conditions.map { |k,c| c.capture_statements }.flatten.join(', ')
+        "params = env['rack_router.params'] = route.params.merge({#{statements}})"
       end
       
-    private
-    
-      def compiled_statement
-        statement = @routes.each_with_index do |route, i|
-          route.compiled_statement do
-            <<-STATEMENT
-              @routes[#{i}].app.call(env)
-            STATEMENT
-          end
-        end
+      def path_info_shifting
+        "route.shift_path_info(env, params, matched_path_info)" if request_conditions[:path_info]
       end
-      
     end
   end
 end

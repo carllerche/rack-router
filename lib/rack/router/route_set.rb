@@ -42,8 +42,10 @@ class Rack::Router
       
       keys.uniq!
       head = keys.map! { |k| "c_#{k} = request.#{k}" }.join(';')
+      
+      path_info = "o_path_info, o_script_name = env['PATH_INFO'], env['SCRIPT_NAME']"
 
-      "#{head}\n#{body}"
+      "#{head}\n#{path_info}\n#{body}"
     end
   end
   

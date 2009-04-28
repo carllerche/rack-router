@@ -84,7 +84,9 @@ class Rack::Router
             route = @routes[#{index}]
             #{params_extraction}
             #{path_info_shifting}
+            env['rack_router.params'].merge!(params)
             #{yield}
+            env['PATH_INFO'], env['SCRIPT_NAME'] = o_path_info, o_script_name
           end
         STATEMENT
       end
@@ -98,7 +100,7 @@ class Rack::Router
       
       def params_extraction
         statements = request_conditions.map { |k,c| c.capture_statements }.flatten.join(', ')
-        "params = env['rack_router.params'] = route.params.merge({#{statements}})"
+        "params = route.params.merge({#{statements}}.reject{|k,v| v.nil?})"
       end
       
       def path_info_shifting

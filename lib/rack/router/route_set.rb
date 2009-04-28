@@ -34,7 +34,7 @@ class Rack::Router
   
   class RouteSet < Hash
     
-    include Handling
+    include Handling, Optimizations::RouteSet
     
     attr_reader :routes
     
@@ -42,12 +42,9 @@ class Rack::Router
       super(DynamicSet.new(routes))
       @depth    = depth
       @routes   = routes.dup  # All routes at this level or deeper
-      @children = routes.dup  # All routes at this level (including dynamics)
     end
     
     def <<(route)
-      @children << route unless @children.include?(route) # Track the route
-      
       if dynamic_for_depth?(route)
         add_route(route)
         add_default_route(route)
@@ -85,8 +82,8 @@ class Rack::Router
     end
     
     def new_sub_set(key)
-      children = @children.select { |route| for_child?(route, key) }
-      RouteSet.new(children, @depth + 1)
+      routes = default.routes.select { |route| for_child?(route, key) }
+      RouteSet.new(routes, @depth + 1)
     end
   
     def for_child?(route, key)

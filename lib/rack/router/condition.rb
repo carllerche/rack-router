@@ -11,7 +11,7 @@ class Rack::Router
       @@types[name].new(name, pattern, segment_conditions, anchored)
     end
     
-    include ConditionOptimizations
+    include Optimizations::Condition
     
     attr_reader :segments, :captures, :pattern
 
@@ -35,7 +35,7 @@ class Rack::Router
         raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
       end
       
-      super # Optimize recognize / generate
+      super() # Optimize recognize / generate
     end
 
     def match(request)

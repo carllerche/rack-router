@@ -26,7 +26,7 @@ class Rack::Router
       
       if pattern.is_a?(Array) || pattern.is_a?(String)
         @segments = pattern.is_a?(Array) ? pattern : [pattern]
-        @pattern  = Regexp.new(anchor(compile(@segments)))
+        @pattern  = Regexp.new(anchor(segments_to_regexp(@segments)))
         @captures = captures_for(@segments)
       elsif pattern.is_a?(Regexp)
         @regexp  = true
@@ -35,7 +35,7 @@ class Rack::Router
         raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
       end
       
-      super() # Optimize recognize / generate
+      compile # This method gets mixed in
     end
 
     def match(request)
@@ -59,8 +59,8 @@ class Rack::Router
 
   private
 
-    def compile(segments)
-      compiled = segments.map do |segment|
+    def segments_to_regexp(segments)
+      regexp = segments.map do |segment|
         case segment
         when String
           Regexp.escape(segment)
@@ -69,11 +69,11 @@ class Rack::Router
           condition = Regexp.escape(condition) unless condition.is_a?(Regexp)
           "(#{condition})"
         when Array
-          "(?:#{compile(segment)})?"
+          "(?:#{segments_to_regexp(segment)})?"
         end
       end
 
-      compiled.join
+      regexp.join
     end
     
     def captures_for(segments)

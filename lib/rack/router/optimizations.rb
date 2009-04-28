@@ -2,10 +2,6 @@ class Rack::Router
   module Optimizations
     module Condition
     
-      def initialize
-        compile_generation
-      end
-    
       def compiled_statement
         "c_#{@method_name} =~ #{@pattern.inspect} && (#{compiled_captures};true)"
       end
@@ -23,7 +19,7 @@ class Rack::Router
       end
     
       # ==== Route Generation ====
-      def compile_generation
+      def compile
         singleton.class_eval <<-EVAL, __FILE__, __LINE__ + 1
           def generate(params, defaults = {})
             raise ArgumentError, "Condition cannot be generated" unless @segments

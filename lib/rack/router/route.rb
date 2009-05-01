@@ -1,7 +1,5 @@
 class Rack::Router
   class Route
-    include Optimizations::Route
-    
     # The Rack application that the route calls when it is matched.
     #
     # :api: public

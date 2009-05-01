@@ -1,4 +1,7 @@
 class Rack::Router
+  # An optimized way to store routes for quicker lookup
+  require 'rack/router/route_set'
+  
   module Optimizations
     module Condition
     
@@ -107,5 +110,13 @@ class Rack::Router
         "route.shift_path_info(env, params, matched_path_info)" if request_conditions[:path_info]
       end
     end
+  end
+  
+  class Condition
+    include Optimizations::Condition
+  end
+  
+  class Route
+    include Optimizations::Route
   end
 end

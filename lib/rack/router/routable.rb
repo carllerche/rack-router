@@ -8,6 +8,7 @@ class Rack::Router
   # * Rewrite the request before passing it to the child rack application
   # * Mount any number of child router objects inside a parent.
   module Routable
+    include Handling
     
     attr_reader :routes, :named_routes, :mount_point
     
@@ -20,9 +21,9 @@ class Rack::Router
       @mounted_apps = {}
       @routes = builder.run(options, &block)
       
-      %w(GET POST PUT DELETE HEAD).each do |method|
-        @route_sets[method] = RouteSet.new
-      end
+      # %w(GET POST PUT DELETE HEAD).each do |method|
+      #   @route_sets[method] = RouteSet.new
+      # end
       
       compile
       
@@ -35,11 +36,12 @@ class Rack::Router
     def call(env)
       env["rack_router.params"] ||= {}
       
-      route_set = @route_sets[env["REQUEST_METHOD"]]
-      env["PATH_INFO"].scan(/#{SEGMENT_CHARACTERS}+/) do |s|
-        route_set = route_set[s]
-      end
-      route_set.handle(Rack::Request.new(env), env)
+      # route_set = @route_sets[env["REQUEST_METHOD"]]
+      # env["PATH_INFO"].scan(/#{SEGMENT_CHARACTERS}+/) do |s|
+      #   route_set = route_set[s]
+      # end
+      # route_set.handle(Rack::Request.new(env), env)
+      handle(Rack::Request.new(env), env)
     end
     
     def url(name, params = {}, fallback = {})
@@ -91,9 +93,9 @@ class Rack::Router
         route.compile(self)
         
         # Add the route to the appropriate route set
-        route.http_methods.each do |method|
-          @route_sets[method] << route
-        end
+        # route.http_methods.each do |method|
+        #   @route_sets[method] << route
+        # end
       
         # Add the route to 
         if route.name

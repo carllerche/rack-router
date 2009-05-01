@@ -11,8 +11,6 @@ class Rack::Router
       @@types[name].new(name, pattern, segment_conditions, anchored)
     end
     
-    include Optimizations::Condition
-    
     attr_reader :segments, :captures, :pattern
 
     def initialize(method_name, pattern, conditions, anchored)
@@ -35,7 +33,7 @@ class Rack::Router
         raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
       end
       
-      compile # This method gets mixed in
+      # compile # This method gets mixed in
     end
 
     def match(request)

@@ -32,8 +32,6 @@ class Rack::Router
       else
         raise ArgumentError, "the condition pattern must be an Array (tokens), String, or Regexp"
       end
-      
-      # compile # This method gets mixed in
     end
 
     def match(request)

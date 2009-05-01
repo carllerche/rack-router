@@ -82,7 +82,7 @@ class Rack::Router
       raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
     end
     
-    def compile(router)
+    def finalize(router)
       @router = router
       
       @request_conditions.each do |method_name, pattern|

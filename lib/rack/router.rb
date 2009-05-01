@@ -24,7 +24,6 @@ module Rack
     # match the passed env against it's routes.
     NOT_FOUND_RESPONSE = [ 404, { STATUS_HEADER => NOT_FOUND }, [NOT_FOUND] ]
     
-    # require 'rack/router/optimizations'
     require 'rack/router/handling'
     require 'rack/router/routable'
     require 'rack/router/route'
@@ -32,6 +31,8 @@ module Rack
     require 'rack/router/parsing'
     require 'rack/router/builders'
     require 'rack/router/utils'
+    
+    require 'rack/router/optimizations'
     
     include Routable
     

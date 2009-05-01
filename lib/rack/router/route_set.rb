@@ -14,6 +14,10 @@ class Rack::Router
       @routes << route unless @routes.include?(route)
       route
     end
+    
+    def compile
+      compile_handling
+    end
   end
   
   class RouteSet < Hash
@@ -44,7 +48,7 @@ class Rack::Router
     end
     
     def compile
-      super
+      compile_handling
       default.compile
       values.each { |set| set.compile }
     end

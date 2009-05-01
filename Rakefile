@@ -47,4 +47,6 @@ Spec::Rake::SpecTask.new('spec') do |t|
   t.spec_opts = ["-c", "-fs"]
 end
 
-task :default => :spec
+task :default do
+  exec "rake spec && rake spec optimizations=true"
+end

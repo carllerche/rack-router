@@ -32,8 +32,6 @@ module Rack
     require 'rack/router/builders'
     require 'rack/router/utils'
     
-    require 'rack/router/optimizations'
-    
     include Routable
     
     def initialize(app = nil, options = {}, &block)

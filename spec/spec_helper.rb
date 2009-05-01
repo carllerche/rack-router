@@ -3,6 +3,9 @@ $LOAD_PATH.unshift File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib
 require "rubygems"
 require "spec"
 require "rack/router"
+if ENV['optimizations']
+  require "rack/router/optimizations"
+end
 
 module Spec
   module Helpers

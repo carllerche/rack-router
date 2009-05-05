@@ -65,9 +65,8 @@ class Rack::Router
     # mount_point<Boolean>::
     #
     # :api: plugin
-    def initialize(app, path_info, request_conditions, segment_conditions, params, mount_point = true)
+    def initialize(app, request_conditions, segment_conditions, params, mount_point = true)
       @app                = app
-      @path_info          = path_info
       @request_conditions = request_conditions
       @segment_conditions = segment_conditions
       @params             = params
@@ -158,9 +157,7 @@ class Rack::Router
     
     # :api: private
     def shift_path_info(env, params, matched)
-      new_path_info = @path_info.dup if @path_info
-      new_path_info ||= env["PATH_INFO"].sub(/^#{Regexp.escape(matched)}/, '')
-      new_path_info.gsub!(SEGMENT_REGEXP) { |s| params[$2.to_sym] }
+      new_path_info = env["PATH_INFO"].sub(/^#{Regexp.escape(matched)}/, '')
       env["SCRIPT_NAME"] = Utils.normalize(env["SCRIPT_NAME"] + matched)
       env["PATH_INFO"]   = Utils.normalize(new_path_info)
     end

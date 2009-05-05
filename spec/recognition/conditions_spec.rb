@@ -12,7 +12,7 @@ describe "When recognizing requests" do
       end
     end
   
-    it "matches the path and return the paramters passed in" do
+    it "matches the path and return the parameters passed in" do
       route_for("/").should have_route(FooApp, :action => "root")
       route_for("/info").should have_route(FooApp, :action => "info")
       route_for("/info/bar").should have_route(FooApp, :action => "bar")

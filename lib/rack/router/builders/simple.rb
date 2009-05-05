@@ -29,9 +29,12 @@ class Rack::Router::Builder
       
       (options[:conditions] || {}).each do |k,v|
         v = v.to_s unless v.is_a?(Regexp)
-        REQUEST_METHODS.include?(k.to_s) ?
-          request_conditions[k] = v :
+        if REQUEST_METHODS.include?(k.to_s)
+          v = Rack::Router::Parsing.parse(v) { |s,d| s } if v.is_a?(String)
+          request_conditions[k] = v
+        else
           segment_conditions[k] = v
+        end
       end
       
       if path

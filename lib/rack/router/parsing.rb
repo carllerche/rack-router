@@ -5,6 +5,8 @@ class Rack::Router
   
   module Parsing
     
+    # TODO: Tweak this to be more flexible with segment
+    # delimiters and the block argument requirement
     def parse(pattern, &block)
       parse_optional_segments(pattern, 0) { |subpattern| parse_segments(subpattern, &block) }
     end

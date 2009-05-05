@@ -125,6 +125,19 @@ describe "When recognizing requests" do
     
   end
   
+  describe "a route with arbitrary request conditions with captures" do
+    
+    it "extracts captures from the host" do
+      prepare do |r|
+        r.map "/", :to => FooApp, :conditions => { :host => ":account.example.org" }
+      end
+      
+      route_for("/", :host => "carl.example.org").should have_route(FooApp, :account => "carl")
+      route_for("/").should be_missing
+    end
+    
+  end
+  
   describe "a route with a glob variable condition" do
     
     it "swallows the remaining of the value when using a glob variable" do

@@ -12,6 +12,14 @@ describe "When generating URLs" do
       @app.url(:simple, {:one => "foo"}, :two => "bar").should == "/foo/bar"
     end
     
+    it "does not generate the route if a required segment is not present in the params and fallback params" do
+      prepare do |r|
+        r.map "/:one/:two", :to => FooApp, :name => :simple
+      end
+      
+      lambda { @app.url(:simple, {:two => "foo"}, {}) }.should raise_error(ArgumentError)
+    end
+    
     it "automatically checks fallback params for required segments even if no params from that segment are specified" do
       prepare do |r|
         r.map "/:one", :to => FooApp, :name => :simple

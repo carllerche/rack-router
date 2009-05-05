@@ -72,12 +72,6 @@ class Rack::Router
       @params             = params
       @mount_point        = mount_point
       
-      # For route generation only
-      # TODO: Move this into Routable
-      if mount_point?
-        @app.mount_at(self)
-      end
-      
       raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
     end
     
@@ -87,7 +81,7 @@ class Rack::Router
       @request_conditions.each do |method_name, pattern|
         @request_conditions[method_name] = 
           # TODO: Refactor this ugliness
-          Condition.build(method_name, pattern, segment_conditions, !(mount_point? || @mount_point))
+          Condition.build(method_name, pattern, segment_conditions, !@mount_point)
       end
       
       # Figure out the HTTP methods that this route can respond to
@@ -107,12 +101,6 @@ class Rack::Router
     
     def path_info
       @request_conditions[:path_info]
-    end
-    
-    # Determines whether or not the current route is a mount point to a child
-    # router.
-    def mount_point?
-      @app.is_a?(Routable)
     end
     
     # Handles the given request. If the route matches the request, it will
@@ -166,7 +154,6 @@ class Rack::Router
   
     def generate_path(params, fallback)
       path = ""
-      path << router.mount_point.generate_path(params, fallback) if router.mounted?
       path << @request_conditions[:path_info].generate(params, @params.merge(fallback)) if @request_conditions[:path_info]
       path
     end

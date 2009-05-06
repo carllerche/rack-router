@@ -42,7 +42,16 @@ class Rack::Router
 
       # Condition#generate will delete from the hash any params that it uses
       # that way, we can just append whatever is left to the query string
-      url = route.url(query_params, fallback)
+      parts = route.url(query_params, fallback)
+      
+      url = ""
+      if parts[0] || parts[1] || parts[2]
+        url << (parts[0] || "http") << "://"
+        url << parts[1]
+        url << ":#{parts[2]}" if parts[2] && parts[2] != 80
+      end
+      
+      url << parts[3]
       
       query_params.delete_if { |k, v| v.nil? }
 

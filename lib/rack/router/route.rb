@@ -12,7 +12,6 @@ class Rack::Router
     # :api: public
     attr_reader :request_conditions
     
-    
     # A Hash containing conditions to use for each dynamic segment.
     #
     # :api: public
@@ -116,7 +115,10 @@ class Rack::Router
     # Generates a URI from the route given the passed parameters
     # ====
     def url(params, fallback)
-      generate_path(params, fallback)
+      defaults = @params.merge(fallback)
+      [:scheme, :host, :port, :path_info].map! do |name|
+        @request_conditions[name] && @request_conditions[name].generate(params, defaults)
+      end
     end
     
     # :api: private
@@ -124,14 +126,6 @@ class Rack::Router
       new_path_info = env["PATH_INFO"].sub(/^#{Regexp.escape(matched)}/, '')
       env["SCRIPT_NAME"] = Utils.normalize(env["SCRIPT_NAME"] + matched)
       env["PATH_INFO"]   = Utils.normalize(new_path_info)
-    end
-    
-  protected
-  
-    def generate_path(params, fallback)
-      path = ""
-      path << @request_conditions[:path_info].generate(params, @params.merge(fallback)) if @request_conditions[:path_info]
-      path
     end
     
   end

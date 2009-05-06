@@ -3,22 +3,7 @@ class Rack::Router
     # The Rack application that the route calls when it is matched.
     #
     # :api: public
-    attr_reader :app
-    
-    # The string that env['PATH_INFO'] gets set to before calling the app
-    # when the route is matched.
-    #
-    # ==== Formats
-    # "/simple/path"   The string literal is what env["PATH_INFO"] gets set
-    #                  to.
-    # "/with/:capture" The placeholder gets replaced with the associated value
-    #                  in the captures extracted from the request by the route.
-    # nil              Whatever remains in the current env["PATH_INFO"] after
-    #                  the matched portion has been removed. This could be an
-    #                  empty string.
-    #
-    # :api: public
-    attr_reader :path_info
+    attr_accessor :app
     
     # A Hash containing the conditions that are used to match the route against
     # the request. The keys are the request method names, the values are the
@@ -71,12 +56,12 @@ class Rack::Router
       @segment_conditions = segment_conditions
       @params             = params
       @mount_point        = mount_point
-      
-      raise ArgumentError, "You must specify a valid rack application" unless app.respond_to?(:call)
     end
     
     def finalize(router)
-      @router = router
+      @parent = router.mount_point
+      
+      raise ArgumentError, "You must specify a valid rack application" unless @app.respond_to?(:call)
       
       @request_conditions.each do |method_name, pattern|
         @request_conditions[method_name] = 
@@ -130,17 +115,8 @@ class Rack::Router
     
     # Generates a URI from the route given the passed parameters
     # ====
-    def generate(params, fallback)
-      query_params = params.dup
-      
-      # Condition#generate will delete from the hash any params that it uses
-      # that way, we can just append whatever is left to the query string
-      uri = generate_path(query_params, fallback)
-      
-      query_params.delete_if { |k, v| v.nil? }
-      
-      uri << "?#{Rack::Utils.build_query(query_params)}" if query_params.any?
-      uri
+    def url(params, fallback)
+      generate_path(params, fallback)
     end
     
     # :api: private

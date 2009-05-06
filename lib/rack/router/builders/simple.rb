@@ -46,6 +46,7 @@ class Rack::Router::Builder
       request_conditions[:request_method] = upcase_method(method) if method
       
       route = Rack::Router::Route.new(options[:to], request_conditions, segment_conditions, options[:with] || {}, !options[:anchor])
+      route.app  = options[:setup].call(route) if options[:setup] # To allow hooking up the route graph
       route.name = options[:name].to_sym if options[:name]
       
       @routes << route

@@ -11,10 +11,11 @@ class Rack::Router
   module Routable
     include Handling
 
-    attr_reader :routes, :named_routes
+    attr_reader :routes, :named_routes, :mount_point
 
     def prepare(options = {}, &block)
       builder       = options.delete(:builder) || Builder::Simple
+      @mount_point  = options.delete(:mount_point)
       @named_routes = {}
       @routes       = []
 
@@ -35,10 +36,18 @@ class Rack::Router
 
     def url(name, params = {}, fallback = {})
       route = named_routes[name]
+      query_params = params.dup
 
       raise ArgumentError, "Cannot find route named '#{name}'" unless route
 
-      route.generate(params, fallback)
+      # Condition#generate will delete from the hash any params that it uses
+      # that way, we can just append whatever is left to the query string
+      url = route.url(query_params, fallback)
+      
+      query_params.delete_if { |k, v| v.nil? }
+
+      url << "?#{Rack::Utils.build_query(query_params)}" if query_params.any?
+      url
     end
 
   private

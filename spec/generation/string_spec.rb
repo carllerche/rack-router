@@ -66,6 +66,10 @@ describe "When generating URLs" do
       @app.url(:foobar, :foo => "omg", :bar => "hi2u").should == "/omg/hi2u"
     end
 
+    it "generates a URL with parameters passed for both variables that need escaping" do
+      @app.url(:foobar, :foo => "om#g", :bar => "hi 2u").should == "/om%23g/hi%202u"
+    end
+
     it "appends any extra parameters to the query string" do
       @app.url(:foobar, :foo => "omg", :bar => "hi2u", :fiz => "what", :biz => "bat").should =~ %r[\?(fiz=what&biz=bat|biz=bat&fiz=what)$]
     end

@@ -1,4 +1,5 @@
 require "rack"
+require "uri"
 
 module Rack
   # Rack::Router is a simple class that includes Rack::Router::Routable.

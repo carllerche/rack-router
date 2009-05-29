@@ -51,7 +51,7 @@ class Rack::Router
         url << ":#{parts[2]}" if parts[2] && parts[2] != 80
       end
       
-      url << parts[3]
+      url << URI.escape(parts[3])
       
       query_params.delete_if { |k, v| v.nil? }
 
